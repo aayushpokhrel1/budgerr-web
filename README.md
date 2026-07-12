@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Budgerr Web — Full Mirror
 
-## Getting Started
+## 1. What this is
 
-First, run the development server:
+The web client for [Budgerr](https://github.com/aayushpokhrel1/Budgerr) — a personal budgeting app with sports betting baked in as a first-class category. Unlike the [mobile app](https://github.com/aayushpokhrel1/budgerr-app), which focuses on the day-to-day (check the budget, log a bet), this is a **full mirror**: every feature the backend exposes gets a page here, so it's the natural place for anything more comfortable on a bigger screen — reviewing longer bet history, adjusting reward card rates, deeper trend/reporting views.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Same as the rest of the project: pure frontend, all logic lives in the [Budgerr backend](https://github.com/aayushpokhrel1/Budgerr) (FastAPI + Postgres). This repo just renders it.
+
+Scope for now: **you, personally**. No auth yet — matches the backend, which doesn't have any either. Both will need it before any of this is exposed beyond your own machine (see backend README Section 10/13).
+
+---
+
+## 2. Architecture
+
+```
+Budgerr backend (FastAPI, localhost:8001 in dev)
+        ▲
+        │  REST — fetch + React Query
+        │
+Budgerr Web (this repo)
+  Next.js App Router (pages/nav) ── React Query (server state) ── React components
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- No server-side data fetching / RSC data loading — every page is a client component that fetches via React Query, same pattern as the mobile app, for consistency between the two frontends
+- No database, no server-side session — this is a thin client, same as the mobile app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 3. Tech stack
 
-## Learn More
+- **Next.js** (App Router, TypeScript) — the standard choice for a from-scratch React web app; App Router over Pages Router since it's the current default
+- **Tailwind CSS** — utility classes directly in components, no separate stylesheet per component
+- **React Query** (`@tanstack/react-query`) — server state, identical usage pattern to the mobile app's `lib/queries.ts`
+- **react-plaid-link** — the official React wrapper around Plaid Link's web SDK, used on `/link-bank` instead of the standalone HTML page the backend also hosts (see backend README Section 9)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+  layout.tsx        — root layout: fonts, <Providers>, <Nav>
+  providers.tsx      — QueryClientProvider wrapper (client component)
+  page.tsx           — Dashboard (/)
+  bets/page.tsx       — Bets: filter, log, settle
+  rewards/page.tsx    — Cards, reward rates, best-card lookup, left-on-table report
+  categories/page.tsx — Categories: create, list, edit monthly limit
+  link-bank/page.tsx  — Plaid Link flow
 
-## Deploy on Vercel
+components/
+  Nav.tsx             — top navigation
+  budget/             — dashboard pieces (allowance card, category tiles, recent
+                        bets, best-card tip, trend stats) — same components as
+                        the mobile app, reimplemented with Tailwind instead of
+                        React Native StyleSheet
+  bets/               — bet form (dynamic legs) + bet row with inline settle
+  rewards/            — cards panel, reward rates panel, best-card lookup,
+                        left-on-table report
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+lib/
+  api.ts              — typed fetch client covering every backend endpoint
+                        (bets, categories, budget periods, alerts, rewards:
+                        cards/rates/progress/lookups, plaid)
+  queries.ts          — React Query hooks wrapping api.ts
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 5. What's built
+
+Every page is fully wired to the backend, not a mockup:
+
+- **Dashboard** (`/`) — betting allowance card with status/progress, other category tiles, recent bets, best-card tip, net profit vs. bank cash flow
+- **Bets** (`/bets`) — status filter, log-a-bet form with dynamic per-leg detail, inline settle (won/lost/push/cashed out) on pending bets
+- **Rewards** (`/rewards`) — credit card CRUD, reward rate CRUD per card (multiplier, cap, effective dates), "which card right now" lookup by category, "rewards left on the table" report over a date range
+- **Categories** (`/categories`) — create categories, inline-edit monthly limits
+- **Link bank** (`/link-bank`) — real Plaid Link flow via `react-plaid-link`, exchanges the token, offers an immediate transaction sync
+
+**Not built yet**: nothing from the current backend API surface — this genuinely is a full mirror as of this writing. Anything built into the backend later (e.g. a stats/trend endpoint) will need a page added here too.
+
+---
+
+## 6. Running it
+
+### Prerequisites
+- The [Budgerr backend](https://github.com/aayushpokhrel1/Budgerr) running locally, with `CORS_ORIGINS` including `http://localhost:3000`
+- Node.js 18+
+
+### Setup
+
+```
+npm install
+cp .env.example .env.local   # defaults to http://localhost:8001
+```
+
+### Run
+
+```
+npm run dev
+```
+
+Open http://localhost:3000.
+
+---
+
+## 7. Environment variables
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Base URL of the Budgerr backend | `http://localhost:8001` in `.env.example` |
