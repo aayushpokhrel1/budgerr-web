@@ -11,6 +11,7 @@ import {
   RewardRateInput,
   RewardRateUpdateInput,
 } from './api';
+import { playstatApi } from './playstat';
 
 export function currentMonth(): string {
   const now = new Date();
@@ -206,4 +207,10 @@ export function useExchangePublicToken() {
 
 export function useSyncTransactions() {
   return useMutation({ mutationFn: (itemId: string) => api.plaid.syncTransactions(itemId) });
+}
+
+// ---- Playstat (basketball dashboard tie-in) ----
+
+export function usePlaystatTonightsEdges() {
+  return useQuery({ queryKey: ['playstat-edges-tonight'], queryFn: playstatApi.edges.listTonight });
 }

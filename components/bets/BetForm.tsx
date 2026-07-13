@@ -3,7 +3,8 @@
 import { useState } from 'react';
 
 import { BetLegInput, BetType } from '@/lib/api';
-import { useCreateBet } from '@/lib/queries';
+import { useCreateBet, usePlaystatTonightsEdges } from '@/lib/queries';
+import { PlaystatEdge } from '@/lib/playstat';
 
 interface LegDraft {
   player_name: string;
@@ -17,6 +18,7 @@ const emptyLeg: LegDraft = { player_name: '', stat_type: '', line_value: '', sid
 
 export function BetForm({ onDone }: { onDone: () => void }) {
   const createBet = useCreateBet();
+  const tonightsEdges = usePlaystatTonightsEdges();
 
   const [sportsbook, setSportsbook] = useState('');
   const [betType, setBetType] = useState<BetType>('single');
@@ -27,6 +29,19 @@ export function BetForm({ onDone }: { onDone: () => void }) {
 
   const updateLeg = (index: number, field: keyof LegDraft, value: string) => {
     setLegs((prev) => prev.map((leg, i) => (i === index ? { ...leg, [field]: value } : leg)));
+  };
+
+  const addLegFromEdge = (edge: PlaystatEdge) => {
+    setLegs((prev) => [
+      ...prev,
+      {
+        player_name: edge.player_name,
+        stat_type: edge.stat_type,
+        line_value: String(edge.line_value),
+        side: edge.side,
+        odds: String(edge.odds),
+      },
+    ]);
   };
 
   const submit = () => {
@@ -99,6 +114,31 @@ export function BetForm({ onDone }: { onDone: () => void }) {
           />
         </div>
       </div>
+
+      {tonightsEdges.data && tonightsEdges.data.length > 0 && (
+        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-3">
+          <p className="text-xs text-gray-500 mb-2">Tonight&apos;s edges (from playstat)</p>
+          <div className="space-y-1">
+            {tonightsEdges.data.map((edge) => (
+              <div
+                key={`${edge.player_id}-${edge.game_id}-${edge.stat_type}`}
+                className="flex items-center justify-between text-sm"
+              >
+                <span>
+                  {edge.player_name} {edge.side} {edge.line_value} {edge.stat_type}{' '}
+                  <span className="text-gray-400">({edge.odds > 0 ? '+' : ''}{edge.odds})</span>
+                </span>
+                <button
+                  className="text-xs text-blue-600 dark:text-blue-400"
+                  onClick={() => addLegFromEdge(edge)}
+                >
+                  + Add to bet
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-2">
