@@ -23,6 +23,7 @@ Budgerr Web (this repo)
 
 - No server-side data fetching / RSC data loading — every page is a client component that fetches via React Query, same pattern as the mobile app, for consistency between the two frontends
 - No database, no server-side session — this is a thin client, same as the mobile app
+- The Bets page also calls a second, unrelated API directly: [playstat](https://github.com/aayushpokhrel1/Playstat)'s `GET /edges`, for the "Tonight's edges" pre-fill panel — read-only, no shared backend or database with Budgerr
 
 ---
 
@@ -71,12 +72,12 @@ lib/
 Every page is fully wired to the backend, not a mockup:
 
 - **Dashboard** (`/`) — betting allowance card with status/progress, other category tiles, recent bets, best-card tip, net profit vs. bank cash flow
-- **Bets** (`/bets`) — status filter, log-a-bet form with dynamic per-leg detail, inline settle (won/lost/push/cashed out) on pending bets
+- **Bets** (`/bets`) — status filter, log-a-bet form with dynamic per-leg detail, inline settle (won/lost/push/cashed out) on pending bets, plus a "Tonight's edges (from playstat)" panel that lists today's positive-edge legs (player, stat, line, side, odds) from the [playstat](https://github.com/aayushpokhrel1/Playstat) project — clicking "+ Add to bet" pre-fills a leg
 - **Rewards** (`/rewards`) — credit card CRUD, reward rate CRUD per card (multiplier, cap, effective dates), "which card right now" lookup by category, "rewards left on the table" report over a date range
 - **Categories** (`/categories`) — create categories, inline-edit monthly limits
 - **Link bank** (`/link-bank`) — real Plaid Link flow via `react-plaid-link`, exchanges the token, offers an immediate transaction sync
 
-**Not built yet**: nothing from the current backend API surface — this genuinely is a full mirror as of this writing. Anything built into the backend later (e.g. a stats/trend endpoint) will need a page added here too.
+**Not built yet**: nothing from the current Budgerr backend API surface — this genuinely is a full mirror of Budgerr as of this writing. Anything built into the Budgerr backend later (e.g. a stats/trend endpoint) will need a page added here too.
 
 ---
 
@@ -84,6 +85,7 @@ Every page is fully wired to the backend, not a mockup:
 
 ### Prerequisites
 - The [Budgerr backend](https://github.com/aayushpokhrel1/Budgerr) running locally, with `CORS_ORIGINS` including `http://localhost:3000`
+- Optional: the [playstat](https://github.com/aayushpokhrel1/Playstat) API running locally (`:8000`, also needs `http://localhost:3000` in its own `CORS_ORIGINS`) for the "Tonight's edges" panel on `/bets` — the page works fine without it, that panel just stays empty
 - Node.js 18+
 
 ### Setup
@@ -108,3 +110,4 @@ Open http://localhost:3000.
 | Variable | Purpose | Default |
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | Base URL of the Budgerr backend | `http://localhost:8001` in `.env.example` |
+| `NEXT_PUBLIC_PLAYSTAT_API_URL` | Base URL of the playstat API (for the Tonight's edges panel) | `http://localhost:8000` in `.env.example` |
