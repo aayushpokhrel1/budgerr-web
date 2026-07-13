@@ -102,6 +102,36 @@ export interface Alert {
   message: string | null;
 }
 
+// ---- Accounts & transactions ----
+
+export interface Account {
+  account_id: number;
+  plaid_item_id: string;
+  institution_name: string;
+  account_type: string;
+  mask: string;
+  current_balance: number;
+}
+
+export interface Transaction {
+  txn_id: number;
+  account_id: number;
+  date: string;
+  amount: number;
+  merchant_name: string | null;
+  plaid_category: string | null;
+  custom_category: string | null;
+  is_betting: boolean;
+}
+
+export interface TransactionFilters {
+  start?: string;
+  end?: string;
+  accountId?: number;
+  uncategorizedOnly?: boolean;
+  limit?: number;
+}
+
 // ---- Rewards ----
 
 export type CapPeriod = 'quarterly' | 'annual';
@@ -269,5 +299,25 @@ export const api = {
         `/plaid/sync-transactions/${itemId}`,
         { method: 'POST' }
       ),
+    accounts: {
+      list: () => request<Account[]>('/plaid/accounts'),
+    },
+    transactions: {
+      list: (filters: TransactionFilters = {}) => {
+        const params = new URLSearchParams();
+        if (filters.start) params.set('start', filters.start);
+        if (filters.end) params.set('end', filters.end);
+        if (filters.accountId !== undefined) params.set('account_id', String(filters.accountId));
+        if (filters.uncategorizedOnly) params.set('uncategorized_only', 'true');
+        if (filters.limit !== undefined) params.set('limit', String(filters.limit));
+        const qs = params.toString();
+        return request<Transaction[]>(`/plaid/transactions${qs ? `?${qs}` : ''}`);
+      },
+      categorize: (txnId: number, customCategory: string | null) =>
+        request<Transaction>(`/plaid/transactions/${txnId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ custom_category: customCategory }),
+        }),
+    },
   },
 };

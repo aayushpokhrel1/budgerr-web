@@ -10,6 +10,7 @@ import {
   CreditCardUpdateInput,
   RewardRateInput,
   RewardRateUpdateInput,
+  TransactionFilters,
 } from './api';
 import { playstatApi } from './playstat';
 
@@ -206,7 +207,38 @@ export function useExchangePublicToken() {
 }
 
 export function useSyncTransactions() {
-  return useMutation({ mutationFn: (itemId: string) => api.plaid.syncTransactions(itemId) });
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => api.plaid.syncTransactions(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['budget-periods'] });
+    },
+  });
+}
+
+export function useAccounts() {
+  return useQuery({ queryKey: ['accounts'], queryFn: api.plaid.accounts.list });
+}
+
+export function useTransactions(filters: TransactionFilters = {}) {
+  return useQuery({
+    queryKey: ['transactions', filters],
+    queryFn: () => api.plaid.transactions.list(filters),
+  });
+}
+
+export function useCategorizeTransaction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ txnId, customCategory }: { txnId: number; customCategory: string | null }) =>
+      api.plaid.transactions.categorize(txnId, customCategory),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['budget-periods'] });
+    },
+  });
 }
 
 // ---- Playstat (basketball dashboard tie-in) ----

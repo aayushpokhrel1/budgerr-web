@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 
@@ -74,10 +75,20 @@ export default function LinkBankPage() {
             {syncTransactions.isPending ? 'Syncing...' : 'Sync transactions now'}
           </button>
           {syncTransactions.data && (
-            <p className="text-sm text-gray-500">
-              Added {syncTransactions.data.added}, modified {syncTransactions.data.modified}, removed{' '}
-              {syncTransactions.data.removed}
-            </p>
+            <>
+              <p className="text-sm text-gray-500">
+                Added {syncTransactions.data.added}, modified {syncTransactions.data.modified}, removed{' '}
+                {syncTransactions.data.removed}
+              </p>
+              <div className="flex gap-3">
+                <Link href="/accounts" className="text-sm text-blue-600 dark:text-blue-400">
+                  View accounts
+                </Link>
+                <Link href="/transactions" className="text-sm text-blue-600 dark:text-blue-400">
+                  View transactions
+                </Link>
+              </div>
+            </>
           )}
         </div>
       )}
