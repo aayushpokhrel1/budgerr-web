@@ -57,6 +57,7 @@ export interface BetInput {
   bet_type: BetType;
   stake: number;
   potential_payout: number;
+  placed_at?: string;
   legs?: BetLegInput[];
   is_paper?: boolean;
 }

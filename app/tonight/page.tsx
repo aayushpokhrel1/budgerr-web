@@ -10,6 +10,7 @@ import {
   currentMonth,
   useBudgetPeriods,
   useCategories,
+  usePlaystatAllEdges,
   usePlaystatEdges,
   usePlaystatGamePredictions,
   usePlaystatParlays,
@@ -33,6 +34,9 @@ export default function TonightPage() {
   const budgetPeriods = useBudgetPeriods(month);
   const slate = usePlaystatSlate();
   const edges = usePlaystatEdges(slate.data?.date);
+  // Parlay recommendations may target a later date than the displayed slate,
+  // so their line lookup uses the full current edge set, not the slate's date.
+  const allEdges = usePlaystatAllEdges();
   const gamePredictions = usePlaystatGamePredictions(slate.data?.date);
   const parlays = usePlaystatParlays();
 
@@ -82,7 +86,7 @@ export default function TonightPage() {
       ) : (
         <div className="space-y-3">
           {parlays.data?.map((parlay) => (
-            <ParlayCard key={parlay.parlay_id} parlay={parlay} edges={edges.data ?? []} />
+            <ParlayCard key={parlay.parlay_id} parlay={parlay} edges={allEdges.data ?? []} />
           ))}
         </div>
       )}

@@ -25,22 +25,24 @@ export function ParlayCard({
   const logAsPaperBet = () => {
     if (!stakeValid) return;
 
-    // Parlay recommendations don't carry the prop line, but the matching edge
-    // (same player/stat/side) does — without it a leg can never auto-settle.
-    const legs: BetLegInput[] = parlay.legs.map((leg) => {
-      const edge = edges.find(
+    // Parlay recommendations don't carry the prop line or game date, but the
+    // matching edge (same player/stat/side) does — auto-settlement needs the
+    // line to grade a leg and matches box scores on the bet's placed_at date.
+    const matchedEdges = parlay.legs.map((leg) =>
+      edges.find(
         (e) =>
           e.player_id === leg.player_id && e.stat_type === leg.stat_type && e.side === leg.side
-      );
-      return {
-        player_name: leg.player_name ?? undefined,
-        stat_type: leg.stat_type,
-        line_value: edge?.line_value,
-        side: leg.side,
-        odds: leg.odds,
-        model_prob: leg.model_prob,
-      };
-    });
+      )
+    );
+    const legs: BetLegInput[] = parlay.legs.map((leg, i) => ({
+      player_name: leg.player_name ?? undefined,
+      stat_type: leg.stat_type,
+      line_value: matchedEdges[i]?.line_value,
+      side: leg.side,
+      odds: leg.odds,
+      model_prob: leg.model_prob,
+    }));
+    const gameDate = matchedEdges.find((e) => e)?.date;
 
     createBet.mutate(
       {
@@ -48,6 +50,7 @@ export function ParlayCard({
         bet_type: parlay.legs.length > 1 ? 'parlay' : 'single',
         stake: stakeNum,
         potential_payout: stakeNum * parlay.combined_odds,
+        placed_at: gameDate ? `${gameDate}T12:00:00Z` : undefined,
         is_paper: true,
         legs,
       },
