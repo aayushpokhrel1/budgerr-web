@@ -60,7 +60,7 @@ export default function TonightPage() {
   }, [gamePredictions.data]);
 
   if (categories.isLoading || budgetPeriods.isLoading || slate.isLoading) {
-    return <p className="text-sm text-gray-400">Loading...</p>;
+    return <p className="text-sm text-muted">Loading...</p>;
   }
 
   const games = slate.data?.games ?? [];
@@ -73,9 +73,9 @@ export default function TonightPage() {
         <BudgetPeriodCard category={bettingCategory} period={bettingPeriod} />
       )}
 
-      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Recommended parlays</p>
+      <p className="text-sm font-medium text-muted">Recommended parlays</p>
       {(parlays.data?.length ?? 0) === 0 ? (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted">
           No parlay recommendations yet — the optimizer runs daily at 8:30am and needs a
           multi-game slate with lines (same-game legs are excluded).
         </p>
@@ -87,13 +87,11 @@ export default function TonightPage() {
         </div>
       )}
 
-      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+      <p className="text-sm font-medium text-muted">
         {slate.data ? slateHeading(slate.data.date, slate.data.isToday, games.length) : ''}
       </p>
 
-      {games.length === 0 && (
-        <p className="text-sm text-gray-400">No games scheduled in the next week.</p>
-      )}
+      {games.length === 0 && <p className="text-sm text-muted">No games scheduled in the next week.</p>}
 
       <div className="space-y-3">
         {games.map((game) => (

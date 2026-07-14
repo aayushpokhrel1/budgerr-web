@@ -10,11 +10,11 @@ export function BestCardLookup() {
   const bestCard = useBestCard(categoryId);
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+    <div className="rounded-xl border border-border p-4">
       <p className="text-sm font-medium mb-3">Which card right now?</p>
 
       <select
-        className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm mb-3"
+        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm mb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         value={categoryId ?? ''}
         onChange={(e) => setCategoryId(e.target.value ? parseInt(e.target.value, 10) : null)}
       >
@@ -26,12 +26,12 @@ export function BestCardLookup() {
         ))}
       </select>
 
-      {categoryId !== null && bestCard.isLoading && <p className="text-sm text-gray-400">Checking...</p>}
+      {categoryId !== null && bestCard.isLoading && <p className="text-sm text-muted">Checking...</p>}
 
       {bestCard.data && (
         <div className="space-y-1">
           {bestCard.data.options.length === 0 && (
-            <p className="text-sm text-gray-400">No reward rates set up for this category yet.</p>
+            <p className="text-sm text-muted">No reward rates set up for this category yet.</p>
           )}
           {bestCard.data.options
             .slice()
@@ -40,13 +40,13 @@ export function BestCardLookup() {
               <div
                 key={option.card_id}
                 className={`flex items-center justify-between text-sm py-2 px-3 rounded-lg ${
-                  bestCard.data!.best?.card_id === option.card_id
-                    ? 'bg-blue-50 dark:bg-blue-950'
-                    : 'bg-gray-50 dark:bg-gray-900'
+                  bestCard.data!.best?.card_id === option.card_id ? 'bg-surface' : ''
                 }`}
               >
                 <span>{option.card_name}</span>
-                <span className={option.capped_out ? 'text-gray-400 line-through' : 'font-medium'}>
+                <span
+                  className={`font-mono tabular-nums ${option.capped_out ? 'text-muted line-through' : 'font-medium text-accent'}`}
+                >
                   {option.multiplier}%{option.capped_out ? ' (capped out)' : ''}
                 </span>
               </div>

@@ -35,11 +35,11 @@ export function CardsPanel({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+    <div className="rounded-xl border border-border p-4">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium">Credit cards</span>
         <button
-          className="text-sm text-blue-600 dark:text-blue-400"
+          className="text-sm text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
           onClick={() => setShowForm((v) => !v)}
         >
           {showForm ? 'Cancel' : '+ Add card'}
@@ -47,27 +47,27 @@ export function CardsPanel({
       </div>
 
       {showForm && (
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
           <input
-            className="rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             placeholder="Name (Chase Freedom)"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <input
-            className="rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             placeholder="Issuer (Chase)"
             value={issuer}
             onChange={(e) => setIssuer(e.target.value)}
           />
           <input
-            className="rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             placeholder="Nickname (optional)"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
           <button
-            className="col-span-3 rounded-lg bg-blue-600 text-white text-sm font-medium py-2"
+            className="sm:col-span-3 rounded-lg bg-primary text-primary-ink text-sm font-medium py-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             onClick={submit}
             disabled={createCard.isPending}
           >
@@ -76,21 +76,19 @@ export function CardsPanel({
         </div>
       )}
 
-      {cards.isLoading && <p className="text-sm text-gray-400">Loading...</p>}
-      {cards.data?.length === 0 && <p className="text-sm text-gray-400">No cards yet.</p>}
+      {cards.isLoading && <p className="text-sm text-muted">Loading...</p>}
+      {cards.data?.length === 0 && <p className="text-sm text-muted">No cards yet.</p>}
 
       <div className="space-y-1">
         {cards.data?.map((card) => (
           <button
             key={card.card_id}
             onClick={() => onSelect(card.card_id)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-              selectedCardId === card.card_id
-                ? 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-900'
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+              selectedCardId === card.card_id ? 'bg-surface text-accent font-medium' : 'hover:bg-surface'
             }`}
           >
-            {card.name} <span className="text-gray-400">— {card.issuer}</span>
+            {card.name} <span className="text-muted">— {card.issuer}</span>
           </button>
         ))}
       </div>

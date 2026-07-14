@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { BestCardTip } from '@/components/budget/BestCardTip';
 import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { CategoryTile } from '@/components/budget/CategoryTile';
+import { DashboardSkeleton } from '@/components/budget/DashboardSkeleton';
 import { RecentBetsList } from '@/components/budget/RecentBetsList';
 import { TrendStats } from '@/components/budget/TrendStats';
 import {
@@ -49,7 +50,7 @@ export default function DashboardPage() {
     budgetPeriods.data?.find((p) => p.category_id === categoryId);
 
   if (categories.isLoading || budgetPeriods.isLoading || bets.isLoading) {
-    return <p className="text-sm text-gray-400">Loading...</p>;
+    return <DashboardSkeleton />;
   }
 
   const bettingPeriod = bettingCategory ? periodFor(bettingCategory.category_id) : undefined;
@@ -59,9 +60,12 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-medium mb-2">Dashboard</h1>
 
       {accounts.data?.length === 0 && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
-          <p className="text-sm text-gray-500">No bank accounts linked yet.</p>
-          <Link href="/link-bank" className="text-sm text-blue-600 dark:text-blue-400 whitespace-nowrap">
+        <div className="rounded-lg bg-surface p-4 flex items-center justify-between">
+          <p className="text-sm text-muted">No bank accounts linked yet.</p>
+          <Link
+            href="/link-bank"
+            className="text-sm text-accent hover:underline whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+          >
             Link a bank account
           </Link>
         </div>

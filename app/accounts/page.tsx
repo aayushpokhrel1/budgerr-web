@@ -18,34 +18,39 @@ export default function AccountsPage() {
         <h1 className="text-2xl font-medium">Accounts</h1>
         <Link
           href="/link-bank"
-          className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
+          className="text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-surface transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           + Link a bank account
         </Link>
       </div>
 
-      {accounts.isLoading && <p className="text-sm text-gray-400">Loading...</p>}
+      {accounts.isLoading && <p className="text-sm text-muted">Loading...</p>}
 
       {accounts.data?.length === 0 && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 text-center space-y-2">
-          <p className="text-sm text-gray-500">No bank accounts linked yet.</p>
-          <Link href="/link-bank" className="text-sm text-blue-600 dark:text-blue-400">
+        <div className="rounded-xl bg-surface p-6 text-center space-y-2">
+          <p className="text-sm text-muted">No bank accounts linked yet.</p>
+          <Link
+            href="/link-bank"
+            className="text-sm text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+          >
             Link your first account
           </Link>
         </div>
       )}
 
       {accounts.data && accounts.data.length > 0 && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
+        <div className="rounded-xl border border-border divide-y divide-border">
           {accounts.data.map((account) => (
             <div key={account.account_id} className="flex items-center justify-between p-4">
               <div>
                 <p className="text-sm font-medium">
                   {account.institution_name} •••{account.mask}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">{account.account_type}</p>
+                <p className="text-xs text-muted capitalize">{account.account_type}</p>
               </div>
-              <span className="text-sm font-medium">${account.current_balance.toFixed(2)}</span>
+              <span className="text-sm font-medium font-mono tabular-nums">
+                ${account.current_balance.toFixed(2)}
+              </span>
             </div>
           ))}
         </div>
@@ -56,7 +61,7 @@ export default function AccountsPage() {
           {itemIds.map((itemId) => (
             <button
               key={itemId}
-              className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 disabled:opacity-50"
+              className="text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-surface disabled:opacity-50 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               onClick={() => syncTransactions.mutate(itemId)}
               disabled={syncTransactions.isPending}
             >

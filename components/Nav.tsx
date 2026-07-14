@@ -18,18 +18,18 @@ export function Nav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-gray-200 dark:border-gray-800">
+    <nav className="border-b border-border">
       <div className="mx-auto max-w-5xl px-6 flex items-center gap-6 h-14">
         <span className="font-medium">Budgerr</span>
         {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className={
+            className={`text-sm border-b-2 pb-[3px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
               pathname === link.href
-                ? 'text-sm font-medium text-blue-600 dark:text-blue-400'
-                : 'text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-            }
+                ? 'font-medium text-primary border-primary'
+                : 'text-muted border-transparent hover:text-foreground'
+            }`}
           >
             {link.label}
           </Link>

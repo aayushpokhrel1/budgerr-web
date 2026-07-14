@@ -20,31 +20,38 @@ function CategoryRow({ category }: { category: Category }) {
   };
 
   return (
-    <div className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-gray-800 first:border-t-0">
+    <div className="flex items-center justify-between py-2 border-t border-border first:border-t-0">
       <div>
         <span className="text-sm">{category.name}</span>
         {category.is_betting_category && (
-          <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-            betting
-          </span>
+          <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-surface text-accent">betting</span>
         )}
       </div>
       {editing ? (
         <div className="flex items-center gap-2">
           <input
-            className="w-24 rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-2 py-1 text-sm"
+            className="w-24 rounded-lg border border-border bg-transparent px-2 py-1 text-sm font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             value={limit}
             onChange={(e) => setLimit(e.target.value)}
           />
-          <button className="text-xs text-blue-600 dark:text-blue-400" onClick={save}>
+          <button
+            className="text-xs text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+            onClick={save}
+          >
             Save
           </button>
-          <button className="text-xs text-gray-400" onClick={() => setEditing(false)}>
+          <button
+            className="text-xs text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+            onClick={() => setEditing(false)}
+          >
             Cancel
           </button>
         </div>
       ) : (
-        <button className="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-200" onClick={() => setEditing(true)}>
+        <button
+          className="text-sm text-muted hover:text-foreground font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+          onClick={() => setEditing(true)}
+        >
           ${category.monthly_limit.toFixed(0)} / mo
         </button>
       )}
@@ -82,7 +89,7 @@ export default function CategoriesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-medium">Categories</h1>
         <button
-          className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
+          className="text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-surface transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           onClick={() => setShowForm((v) => !v)}
         >
           {showForm ? 'Cancel' : '+ Add category'}
@@ -90,15 +97,15 @@ export default function CategoriesPage() {
       </div>
 
       {showForm && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+        <div className="rounded-xl border border-border p-4 space-y-3">
           <input
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             placeholder="Name (Groceries)"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <input
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             placeholder="Monthly limit ($)"
             value={limit}
             onChange={(e) => setLimit(e.target.value)}
@@ -108,7 +115,7 @@ export default function CategoriesPage() {
             This is the betting category
           </label>
           <button
-            className="w-full rounded-lg bg-blue-600 text-white text-sm font-medium py-2"
+            className="w-full rounded-lg bg-primary text-primary-ink text-sm font-medium py-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             onClick={submit}
             disabled={createCategory.isPending}
           >
@@ -117,9 +124,9 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-        {categories.isLoading && <p className="text-sm text-gray-400">Loading...</p>}
-        {categories.data?.length === 0 && <p className="text-sm text-gray-400">No categories yet.</p>}
+      <div className="rounded-xl border border-border p-4">
+        {categories.isLoading && <p className="text-sm text-muted">Loading...</p>}
+        {categories.data?.length === 0 && <p className="text-sm text-muted">No categories yet.</p>}
         {categories.data?.map((category) => (
           <CategoryRow key={category.category_id} category={category} />
         ))}

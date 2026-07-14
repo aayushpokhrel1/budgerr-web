@@ -19,7 +19,7 @@ export function GameCard({
   const isFinal = label === 'Final';
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+    <div className="rounded-xl border border-border p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium truncate">
           {game.away_team_name} @ {game.home_team_name}
@@ -27,8 +27,8 @@ export function GameCard({
         <span
           className={
             isFinal
-              ? 'text-xs font-medium px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 whitespace-nowrap'
-              : 'text-xs font-medium px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400 whitespace-nowrap'
+              ? 'text-xs font-medium px-2 py-1 rounded bg-surface text-muted whitespace-nowrap'
+              : 'text-xs font-medium px-2 py-1 rounded bg-surface text-accent whitespace-nowrap'
           }
         >
           {label}
@@ -36,13 +36,13 @@ export function GameCard({
       </div>
 
       {firstInning && (
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-xs text-muted">
           1st inning under {firstInning.line_value} runs:{' '}
-          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+          <span className="font-medium text-emerald-600 dark:text-emerald-400 font-mono tabular-nums">
             {Math.round(firstInning.prob_under * 100)}%
           </span>
           {firstInning.book_under_odds != null && (
-            <span>
+            <span className="font-mono tabular-nums">
               {' '}· book {firstInning.book_under_odds > 0 ? '+' : ''}
               {firstInning.book_under_odds} u{firstInning.book_line_value}
             </span>
@@ -53,9 +53,9 @@ export function GameCard({
       {edges.length > 0 && (
         <div className="mt-2 space-y-1">
           {edges.map((edge) => (
-            <p key={`${edge.player_id}-${edge.stat_type}`} className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p key={`${edge.player_id}-${edge.stat_type}`} className="text-xs text-muted truncate">
               {edge.player_name} {edge.side} {edge.line_value} {edge.stat_type}{' '}
-              <span className="text-blue-600 dark:text-blue-400">
+              <span className="text-accent font-mono tabular-nums">
                 ({edge.odds > 0 ? '+' : ''}
                 {edge.odds})
               </span>

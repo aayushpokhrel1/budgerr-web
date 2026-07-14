@@ -45,14 +45,14 @@ export default function LinkBankPage() {
   return (
     <div className="max-w-lg space-y-4">
       <h1 className="text-2xl font-medium">Link a bank account</h1>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-muted">
         This calls the Budgerr backend to create a Plaid Link session, then hands off to Plaid&apos;s own
         secure login UI — your bank credentials go straight to Plaid, never to this page or the Budgerr
         backend.
       </p>
 
       <button
-        className="rounded-lg bg-blue-600 text-white text-sm font-medium px-4 py-2.5 disabled:opacity-50"
+        className="rounded-lg bg-primary text-primary-ink text-sm font-medium px-4 py-2.5 disabled:opacity-50 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         onClick={start}
         disabled={createLinkToken.isPending}
       >
@@ -62,13 +62,13 @@ export default function LinkBankPage() {
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {result && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-2">
+        <div className="rounded-xl border border-border p-4 space-y-2">
           <p className="text-sm">
-            Linked! item_id: <span className="font-mono text-xs">{result.item_id}</span>
+            Linked! item_id: <span className="font-mono tabular-nums text-xs">{result.item_id}</span>
           </p>
-          <p className="text-sm">accounts_created: {result.accounts_created}</p>
+          <p className="text-sm font-mono tabular-nums">accounts_created: {result.accounts_created}</p>
           <button
-            className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 disabled:opacity-50"
+            className="text-sm px-3 py-1.5 rounded-lg border border-border hover:bg-surface disabled:opacity-50 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             onClick={() => syncTransactions.mutate(result.item_id)}
             disabled={syncTransactions.isPending}
           >
@@ -76,15 +76,21 @@ export default function LinkBankPage() {
           </button>
           {syncTransactions.data && (
             <>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted font-mono tabular-nums">
                 Added {syncTransactions.data.added}, modified {syncTransactions.data.modified}, removed{' '}
                 {syncTransactions.data.removed}
               </p>
               <div className="flex gap-3">
-                <Link href="/accounts" className="text-sm text-blue-600 dark:text-blue-400">
+                <Link
+                  href="/accounts"
+                  className="text-sm text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+                >
                   View accounts
                 </Link>
-                <Link href="/transactions" className="text-sm text-blue-600 dark:text-blue-400">
+                <Link
+                  href="/transactions"
+                  className="text-sm text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+                >
                   View transactions
                 </Link>
               </div>
