@@ -7,7 +7,9 @@ import { BestCardTip } from '@/components/budget/BestCardTip';
 import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { CategoryTile } from '@/components/budget/CategoryTile';
 import { DashboardSkeleton } from '@/components/budget/DashboardSkeleton';
+import { ExpiringRatesBanner } from '@/components/budget/ExpiringRatesBanner';
 import { RecentBetsList } from '@/components/budget/RecentBetsList';
+import { RecurringChargesCard } from '@/components/budget/RecurringChargesCard';
 import { TrendStats } from '@/components/budget/TrendStats';
 import {
   currentMonth,
@@ -18,7 +20,9 @@ import {
   useBetsTrend,
   useBudgetPeriods,
   useCategories,
+  useExpiringRates,
   useRecomputeBudgetPeriods,
+  useRecurringCharges,
 } from '@/lib/queries';
 
 export default function DashboardPage() {
@@ -30,6 +34,8 @@ export default function DashboardPage() {
   const bets = useBets();
   const trend = useBetsTrend(start, end);
   const accounts = useAccounts();
+  const recurringCharges = useRecurringCharges();
+  const expiringRates = useExpiringRates(45);
 
   // Ensures every category has an up-to-date budget_period row (spent/
   // remaining) as soon as the dashboard is viewed, rather than only after a
@@ -59,6 +65,8 @@ export default function DashboardPage() {
     <div className="max-w-2xl space-y-4">
       <h1 className="text-2xl font-medium mb-2">Dashboard</h1>
 
+      {expiringRates.data && <ExpiringRatesBanner data={expiringRates.data} />}
+
       {accounts.data?.length === 0 && (
         <div className="rounded-lg bg-surface p-4 flex items-center justify-between">
           <p className="text-sm text-muted">No bank accounts linked yet.</p>
@@ -87,6 +95,8 @@ export default function DashboardPage() {
       )}
 
       <RecentBetsList bets={bets.data ?? []} />
+
+      {recurringCharges.data && <RecurringChargesCard data={recurringCharges.data} />}
 
       {tipCategory && bestCard.data && <BestCardTip category={tipCategory} result={bestCard.data} />}
 

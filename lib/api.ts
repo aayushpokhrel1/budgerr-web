@@ -268,6 +268,40 @@ export interface LeftOnTableResponse {
   by_month: MonthlyGap[];
 }
 
+export interface ExpiringRate {
+  rate_id: number;
+  card_id: number;
+  card_name: string;
+  category_id: number;
+  category_name: string;
+  multiplier: number;
+  effective_end: string;
+  days_left: number;
+}
+
+export interface ExpiringRatesResponse {
+  expiring: ExpiringRate[];
+}
+
+// ---- Recurring charges ----
+
+export interface RecurringCharge {
+  merchant_name: string;
+  last_amount: number;
+  avg_amount: number;
+  occurrences: number;
+  first_date: string;
+  last_date: string;
+  median_interval_days: number;
+  active: boolean;
+  monthly_estimate: number;
+}
+
+export interface RecurringChargesResponse {
+  recurring: RecurringCharge[];
+  monthly_total: number;
+}
+
 export const api = {
   bets: {
     list: (status?: BetStatus) => request<Bet[]>(`/bets${status ? `?status=${status}` : ''}`),
@@ -339,6 +373,8 @@ export const api = {
       ),
     leftOnTable: (start: string, end: string) =>
       request<LeftOnTableResponse>(`/rewards/left-on-table?start=${start}&end=${end}`),
+    expiringRates: (withinDays = 45) =>
+      request<ExpiringRatesResponse>(`/rewards/expiring-rates?within_days=${withinDays}`),
   },
   plaid: {
     linkToken: () => request<{ link_token: string }>('/plaid/link-token', { method: 'POST' }),
@@ -372,5 +408,6 @@ export const api = {
           body: JSON.stringify({ custom_category: customCategory }),
         }),
     },
+    recurringCharges: () => request<RecurringChargesResponse>('/plaid/recurring-charges'),
   },
 };

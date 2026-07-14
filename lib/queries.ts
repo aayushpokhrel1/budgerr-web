@@ -246,6 +246,17 @@ export function useCategorizeTransaction() {
   });
 }
 
+export function useRecurringCharges() {
+  return useQuery({ queryKey: ['recurring-charges'], queryFn: api.plaid.recurringCharges });
+}
+
+export function useExpiringRates(withinDays = 45) {
+  return useQuery({
+    queryKey: ['expiring-rates', withinDays],
+    queryFn: () => api.rewards.expiringRates(withinDays),
+  });
+}
+
 // ---- Playstat (sports dashboard tie-in) ----
 
 export function usePlaystatSlate() {

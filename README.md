@@ -73,7 +73,7 @@ lib/
 
 Every page is fully wired to the backend, not a mockup:
 
-- **Dashboard** (`/`) — betting allowance card with status/progress, other category tiles, recent bets, best-card tip, net profit vs. bank cash flow
+- **Dashboard** (`/`) — betting allowance card with status/progress, other category tiles, recent bets, recurring charges card (detected subscriptions with monthly estimate), best-card tip, net profit vs. bank cash flow, and an amber warning banner when a rotating reward category is about to expire
 - **Bets** (`/bets`) — status filter, log-a-bet form with dynamic per-leg detail, inline settle (won/lost/push/cashed out) on pending bets, plus a "Tonight's edges (from playstat)" panel that lists today's positive-edge legs (player, stat, line, side, odds) from the [playstat](https://github.com/aayushpokhrel1/Playstat) project — clicking "+ Add to bet" pre-fills a leg
 - **Analytics** (`/analytics`) — real/paper scope toggle, overall settled/record/staked/net-profit/ROI summary, breakdowns by sportsbook, bet type, and stat type (hit rate), and a calibration section comparing predicted vs. actual win rate overall and per probability bucket
 - **Rewards** (`/rewards`) — credit card CRUD, reward rate CRUD per card (multiplier, cap, effective dates), "which card right now" lookup by category, "rewards left on the table" report over a date range
