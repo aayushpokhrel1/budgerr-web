@@ -26,6 +26,7 @@ export interface BetLeg {
   side: string | null;
   odds: number | null;
   leg_status: BetStatus;
+  model_prob: number | null;
 }
 
 export interface Bet {
@@ -39,6 +40,7 @@ export interface Bet {
   settled_at: string | null;
   net_result: number | null;
   legs: BetLeg[];
+  is_paper: boolean;
 }
 
 export interface BetLegInput {
@@ -47,6 +49,7 @@ export interface BetLegInput {
   line_value?: number;
   side?: string;
   odds?: number;
+  model_prob?: number | null;
 }
 
 export interface BetInput {
@@ -55,6 +58,7 @@ export interface BetInput {
   stake: number;
   potential_payout: number;
   legs?: BetLegInput[];
+  is_paper?: boolean;
 }
 
 export interface MonthlyNetResult {

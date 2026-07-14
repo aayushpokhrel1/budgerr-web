@@ -82,7 +82,7 @@ export default function TonightPage() {
       ) : (
         <div className="space-y-3">
           {parlays.data?.map((parlay) => (
-            <ParlayCard key={parlay.parlay_id} parlay={parlay} />
+            <ParlayCard key={parlay.parlay_id} parlay={parlay} edges={edges.data ?? []} />
           ))}
         </div>
       )}

@@ -90,6 +90,11 @@ export function BetRow({ bet }: { bet: Bet }) {
             <span className="font-mono tabular-nums">
               ${bet.stake.toFixed(0)} to win ${(bet.potential_payout - bet.stake).toFixed(0)}
             </span>
+            {bet.is_paper && (
+              <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded bg-surface text-accent align-middle normal-case">
+                PAPER
+              </span>
+            )}
           </p>
           {summary && <p className="text-xs text-muted truncate">{summary}</p>}
         </div>
