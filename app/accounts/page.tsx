@@ -26,6 +26,22 @@ export default function AccountsPage() {
 
       {accounts.isLoading && <p className="text-sm text-muted">Loading...</p>}
 
+      {(accounts.isError || accounts.fetchStatus === 'paused') && (
+        <div className="rounded-xl bg-surface p-6 text-center space-y-2">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {accounts.fetchStatus === 'paused'
+              ? "Couldn't reach the Budgerr backend — check your connection."
+              : "Couldn't load your accounts. The Budgerr backend may be unreachable."}
+          </p>
+          <button
+            className="text-sm text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+            onClick={() => accounts.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
       {accounts.data?.length === 0 && (
         <div className="rounded-xl bg-surface p-6 text-center space-y-2">
           <p className="text-sm text-muted">No bank accounts linked yet.</p>

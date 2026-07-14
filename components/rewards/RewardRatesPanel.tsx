@@ -58,6 +58,7 @@ export function RewardRatesPanel({ cardId }: { cardId: number | null }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
         <select
+          aria-label="Category"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
@@ -70,18 +71,21 @@ export function RewardRatesPanel({ cardId }: { cardId: number | null }) {
           ))}
         </select>
         <input
+          aria-label="Multiplier percent"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           placeholder="Multiplier % (5)"
           value={multiplier}
           onChange={(e) => setMultiplier(e.target.value)}
         />
         <input
+          aria-label="Cap amount"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           placeholder="Cap amount (optional)"
           value={capAmount}
           onChange={(e) => setCapAmount(e.target.value)}
         />
         <select
+          aria-label="Cap period"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           value={capPeriod}
           onChange={(e) => setCapPeriod(e.target.value as CapPeriod | '')}
@@ -92,6 +96,7 @@ export function RewardRatesPanel({ cardId }: { cardId: number | null }) {
         </select>
         <input
           type="date"
+          aria-label="Effective start date"
           className="sm:col-span-2 rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           value={effectiveStart}
           onChange={(e) => setEffectiveStart(e.target.value)}

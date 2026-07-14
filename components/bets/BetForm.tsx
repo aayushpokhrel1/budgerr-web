@@ -190,7 +190,7 @@ export function BetForm({ onDone }: { onDone: () => void }) {
               />
             </div>
             <button
-              className="text-xs text-red-600 dark:text-red-400 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+              className="text-xs text-red-600 dark:text-red-400 hover:underline px-2 py-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
               onClick={() => setLegs((prev) => prev.filter((_, i) => i !== index))}
             >
               Remove leg

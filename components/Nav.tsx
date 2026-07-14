@@ -20,20 +20,22 @@ export function Nav() {
   return (
     <nav className="border-b border-border">
       <div className="mx-auto max-w-5xl px-6 flex items-center gap-6 h-14">
-        <span className="font-medium">Budgerr</span>
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`text-sm border-b-2 pb-[3px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-              pathname === link.href
-                ? 'font-medium text-primary border-primary'
-                : 'text-muted border-transparent hover:text-foreground'
-            }`}
-          >
-            {link.label}
-          </Link>
-        ))}
+        <span className="font-medium shrink-0">Budgerr</span>
+        <div className="flex items-center gap-6 overflow-x-auto">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-sm border-b-2 pb-[3px] shrink-0 whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                pathname === link.href
+                  ? 'font-medium text-primary border-primary'
+                  : 'text-muted border-transparent hover:text-foreground'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
       </div>
     </nav>
   );

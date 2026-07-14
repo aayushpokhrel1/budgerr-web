@@ -48,24 +48,41 @@ export function CardsPanel({
 
       {showForm && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-          <input
-            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            placeholder="Name (Chase Freedom)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <input
-            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            placeholder="Issuer (Chase)"
-            value={issuer}
-            onChange={(e) => setIssuer(e.target.value)}
-          />
-          <input
-            className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            placeholder="Nickname (optional)"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-          />
+          <div>
+            <label htmlFor="card-name" className="block text-xs text-muted mb-1">
+              Name
+            </label>
+            <input
+              id="card-name"
+              className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              placeholder="Chase Freedom"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="card-issuer" className="block text-xs text-muted mb-1">
+              Issuer
+            </label>
+            <input
+              id="card-issuer"
+              className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              placeholder="Chase"
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="card-nickname" className="block text-xs text-muted mb-1">
+              Nickname (optional)
+            </label>
+            <input
+              id="card-nickname"
+              className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
+          </div>
           <button
             className="sm:col-span-3 rounded-lg bg-primary text-primary-ink text-sm font-medium py-2 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             onClick={submit}

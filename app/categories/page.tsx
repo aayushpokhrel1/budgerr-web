@@ -35,13 +35,13 @@ function CategoryRow({ category }: { category: Category }) {
             onChange={(e) => setLimit(e.target.value)}
           />
           <button
-            className="text-xs text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+            className="text-xs text-accent hover:underline px-2 py-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
             onClick={save}
           >
             Save
           </button>
           <button
-            className="text-xs text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+            className="text-xs text-muted hover:text-foreground px-2 py-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
             onClick={() => setEditing(false)}
           >
             Cancel
@@ -98,18 +98,30 @@ export default function CategoriesPage() {
 
       {showForm && (
         <div className="rounded-xl border border-border p-4 space-y-3">
-          <input
-            className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            placeholder="Name (Groceries)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <input
-            className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            placeholder="Monthly limit ($)"
-            value={limit}
-            onChange={(e) => setLimit(e.target.value)}
-          />
+          <div>
+            <label htmlFor="category-name" className="block text-xs text-muted mb-1">
+              Name
+            </label>
+            <input
+              id="category-name"
+              className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              placeholder="Groceries"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="category-limit" className="block text-xs text-muted mb-1">
+              Monthly limit ($)
+            </label>
+            <input
+              id="category-limit"
+              className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              placeholder="500"
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+            />
+          </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={isBetting} onChange={(e) => setIsBetting(e.target.checked)} />
             This is the betting category

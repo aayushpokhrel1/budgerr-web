@@ -19,6 +19,7 @@ export function LeftOnTableReport() {
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <input
           type="date"
+          aria-label="Start date"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
@@ -26,6 +27,7 @@ export function LeftOnTableReport() {
         <span className="text-sm text-muted">to</span>
         <input
           type="date"
+          aria-label="End date"
           className="rounded-lg border border-border bg-transparent px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}

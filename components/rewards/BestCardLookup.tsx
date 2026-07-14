@@ -14,6 +14,7 @@ export function BestCardLookup() {
       <p className="text-sm font-medium mb-3">Which card right now?</p>
 
       <select
+        aria-label="Category"
         className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm mb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         value={categoryId ?? ''}
         onChange={(e) => setCategoryId(e.target.value ? parseInt(e.target.value, 10) : null)}
