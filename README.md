@@ -44,6 +44,8 @@ app/
   providers.tsx      — QueryClientProvider wrapper (client component)
   page.tsx           — Dashboard (/)
   bets/page.tsx       — Bets: filter, log, settle
+  analytics/page.tsx  — Bet analytics: real/paper scope toggle, overall summary,
+                        breakdowns by sportsbook/bet type/stat type, calibration
   rewards/page.tsx    — Cards, reward rates, best-card lookup, left-on-table report
   categories/page.tsx — Categories: create, list, edit monthly limit
   link-bank/page.tsx  — Plaid Link flow
@@ -73,6 +75,7 @@ Every page is fully wired to the backend, not a mockup:
 
 - **Dashboard** (`/`) — betting allowance card with status/progress, other category tiles, recent bets, best-card tip, net profit vs. bank cash flow
 - **Bets** (`/bets`) — status filter, log-a-bet form with dynamic per-leg detail, inline settle (won/lost/push/cashed out) on pending bets, plus a "Tonight's edges (from playstat)" panel that lists today's positive-edge legs (player, stat, line, side, odds) from the [playstat](https://github.com/aayushpokhrel1/Playstat) project — clicking "+ Add to bet" pre-fills a leg
+- **Analytics** (`/analytics`) — real/paper scope toggle, overall settled/record/staked/net-profit/ROI summary, breakdowns by sportsbook, bet type, and stat type (hit rate), and a calibration section comparing predicted vs. actual win rate overall and per probability bucket
 - **Rewards** (`/rewards`) — credit card CRUD, reward rate CRUD per card (multiplier, cap, effective dates), "which card right now" lookup by category, "rewards left on the table" report over a date range
 - **Categories** (`/categories`) — create categories, inline-edit monthly limits
 - **Link bank** (`/link-bank`) — real Plaid Link flow via `react-plaid-link`, exchanges the token, offers an immediate transaction sync

@@ -69,6 +69,52 @@ export interface MonthlyNetResult {
   bank_net_cash_outflow: number;
 }
 
+export type BetAnalyticsScope = 'real' | 'paper';
+
+export interface BetAnalyticsGroup {
+  key: string;
+  settled: number;
+  wins: number;
+  losses: number;
+  pushes: number;
+  total_staked: number;
+  net_profit: number;
+  roi: number | null;
+}
+
+export interface BetAnalyticsStatGroup {
+  key: string;
+  legs: number;
+  won: number;
+  lost: number;
+  pushed: number;
+  hit_rate: number | null;
+}
+
+export interface BetAnalyticsCalibrationBucket {
+  lo: number;
+  hi: number;
+  legs: number;
+  predicted: number;
+  actual: number | null;
+}
+
+export interface BetAnalyticsCalibration {
+  legs: number;
+  overall_predicted: number | null;
+  overall_actual: number | null;
+  buckets: BetAnalyticsCalibrationBucket[];
+}
+
+export interface BetAnalytics {
+  scope: BetAnalyticsScope;
+  overall: BetAnalyticsGroup;
+  by_sportsbook: BetAnalyticsGroup[];
+  by_bet_type: BetAnalyticsGroup[];
+  by_stat_type: BetAnalyticsStatGroup[];
+  calibration: BetAnalyticsCalibration;
+}
+
 // ---- Budgeting ----
 
 export interface Category {
@@ -234,6 +280,8 @@ export const api = {
       }),
     trend: (start: string, end: string) =>
       request<{ by_month: MonthlyNetResult[] }>(`/bets/trend?start=${start}&end=${end}`),
+    analytics: (scope?: BetAnalyticsScope) =>
+      request<BetAnalytics>(`/bets/analytics${scope ? `?scope=${scope}` : ''}`),
   },
   categories: {
     list: () => request<Category[]>('/categories'),

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   api,
+  BetAnalyticsScope,
   BetInput,
   BetStatus,
   CategoryInput,
@@ -91,6 +92,10 @@ export function useBet(betId: number | null) {
 
 export function useBetsTrend(start: string, end: string) {
   return useQuery({ queryKey: ['bets-trend', start, end], queryFn: () => api.bets.trend(start, end) });
+}
+
+export function useBetAnalytics(scope: BetAnalyticsScope) {
+  return useQuery({ queryKey: ['bets-analytics', scope], queryFn: () => api.bets.analytics(scope) });
 }
 
 export function useCreateBet() {
