@@ -1,12 +1,20 @@
-import { PlaystatEdge, PlaystatGame } from '@/lib/playstat';
+import { PlaystatEdge, PlaystatGame, PlaystatGamePrediction } from '@/lib/playstat';
 
 function statusLabel(status: string | null): string {
-  if (!status || status === 'NS') return 'Upcoming';
+  if (!status || status === 'NS' || status === 'S') return 'Upcoming';
   if (status === 'FT' || status === 'AOT') return 'Final';
   return status;
 }
 
-export function GameCard({ game, edges }: { game: PlaystatGame; edges: PlaystatEdge[] }) {
+export function GameCard({
+  game,
+  edges,
+  firstInning,
+}: {
+  game: PlaystatGame;
+  edges: PlaystatEdge[];
+  firstInning?: PlaystatGamePrediction;
+}) {
   const label = statusLabel(game.status);
   const isFinal = label === 'Final';
 
@@ -26,6 +34,21 @@ export function GameCard({ game, edges }: { game: PlaystatGame; edges: PlaystatE
           {label}
         </span>
       </div>
+
+      {firstInning && (
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          1st inning under {firstInning.line_value} runs:{' '}
+          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+            {Math.round(firstInning.prob_under * 100)}%
+          </span>
+          {firstInning.book_under_odds != null && (
+            <span>
+              {' '}· book {firstInning.book_under_odds > 0 ? '+' : ''}
+              {firstInning.book_under_odds} u{firstInning.book_line_value}
+            </span>
+          )}
+        </p>
+      )}
 
       {edges.length > 0 && (
         <div className="mt-2 space-y-1">

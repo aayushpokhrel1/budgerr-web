@@ -4,22 +4,37 @@ import { useMemo } from 'react';
 
 import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { GameCard } from '@/components/tonight/GameCard';
-import { PlaystatEdge } from '@/lib/playstat';
+import { ParlayCard } from '@/components/tonight/ParlayCard';
+import { PlaystatEdge, PlaystatGamePrediction } from '@/lib/playstat';
 import {
   currentMonth,
   useBudgetPeriods,
   useCategories,
-  usePlaystatTonightsEdges,
-  usePlaystatTonightsGames,
+  usePlaystatEdges,
+  usePlaystatGamePredictions,
+  usePlaystatParlays,
+  usePlaystatSlate,
 } from '@/lib/queries';
+
+function slateHeading(date: string, isToday: boolean, count: number): string {
+  if (isToday) return `Tonight's slate (${count})`;
+  const day = new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+  return `Next slate — ${day} (${count})`;
+}
 
 export default function TonightPage() {
   const month = currentMonth();
 
   const categories = useCategories();
   const budgetPeriods = useBudgetPeriods(month);
-  const games = usePlaystatTonightsGames();
-  const edges = usePlaystatTonightsEdges();
+  const slate = usePlaystatSlate();
+  const edges = usePlaystatEdges(slate.data?.date);
+  const gamePredictions = usePlaystatGamePredictions(slate.data?.date);
+  const parlays = usePlaystatParlays();
 
   const bettingCategory = categories.data?.find((c) => c.is_betting_category);
   const bettingPeriod = bettingCategory
@@ -36,9 +51,19 @@ export default function TonightPage() {
     return map;
   }, [edges.data]);
 
-  if (categories.isLoading || budgetPeriods.isLoading || games.isLoading) {
+  const firstInningByGame = useMemo(() => {
+    const map = new Map<number, PlaystatGamePrediction>();
+    for (const pred of gamePredictions.data ?? []) {
+      if (pred.market === 'first_inning_runs') map.set(pred.game_id, pred);
+    }
+    return map;
+  }, [gamePredictions.data]);
+
+  if (categories.isLoading || budgetPeriods.isLoading || slate.isLoading) {
     return <p className="text-sm text-gray-400">Loading...</p>;
   }
+
+  const games = slate.data?.games ?? [];
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -48,17 +73,36 @@ export default function TonightPage() {
         <BudgetPeriodCard category={bettingCategory} period={bettingPeriod} />
       )}
 
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Recommended parlays</p>
+      {(parlays.data?.length ?? 0) === 0 ? (
+        <p className="text-sm text-gray-400">
+          No parlay recommendations yet — the optimizer runs daily at 8:30am and needs a
+          multi-game slate with lines (same-game legs are excluded).
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {parlays.data?.map((parlay) => (
+            <ParlayCard key={parlay.parlay_id} parlay={parlay} />
+          ))}
+        </div>
+      )}
+
       <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-        Tonight&apos;s slate{games.data ? ` (${games.data.length})` : ''}
+        {slate.data ? slateHeading(slate.data.date, slate.data.isToday, games.length) : ''}
       </p>
 
-      {games.data?.length === 0 && (
-        <p className="text-sm text-gray-400">No games tonight.</p>
+      {games.length === 0 && (
+        <p className="text-sm text-gray-400">No games scheduled in the next week.</p>
       )}
 
       <div className="space-y-3">
-        {games.data?.map((game) => (
-          <GameCard key={game.game_id} game={game} edges={edgesByGame.get(game.game_id) ?? []} />
+        {games.map((game) => (
+          <GameCard
+            key={game.game_id}
+            game={game}
+            edges={edgesByGame.get(game.game_id) ?? []}
+            firstInning={firstInningByGame.get(game.game_id)}
+          />
         ))}
       </div>
     </div>

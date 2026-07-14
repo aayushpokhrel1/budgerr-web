@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { BetLegInput, BetType } from '@/lib/api';
-import { useCreateBet, usePlaystatTonightsEdges } from '@/lib/queries';
+import { useCreateBet, usePlaystatEdges, usePlaystatSlate } from '@/lib/queries';
 import { PlaystatEdge } from '@/lib/playstat';
 
 interface LegDraft {
@@ -18,7 +18,8 @@ const emptyLeg: LegDraft = { player_name: '', stat_type: '', line_value: '', sid
 
 export function BetForm({ onDone }: { onDone: () => void }) {
   const createBet = useCreateBet();
-  const tonightsEdges = usePlaystatTonightsEdges();
+  const slate = usePlaystatSlate();
+  const tonightsEdges = usePlaystatEdges(slate.data?.date);
 
   const [sportsbook, setSportsbook] = useState('');
   const [betType, setBetType] = useState<BetType>('single');
