@@ -1,5 +1,13 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001';
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
@@ -7,9 +15,24 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail ?? res.statusText);
+    throw new ApiError(body.detail ?? res.statusText, res.status);
   }
   if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+// Multipart requests (e.g. file uploads) can't use the JSON helper above —
+// no Content-Type header (the browser sets the multipart boundary) and the
+// body is a FormData, not a JSON string.
+async function requestMultipart<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(body.detail ?? res.statusText, res.status);
+  }
   return res.json();
 }
 
@@ -113,6 +136,36 @@ export interface BetAnalytics {
   by_bet_type: BetAnalyticsGroup[];
   by_stat_type: BetAnalyticsStatGroup[];
   calibration: BetAnalyticsCalibration;
+}
+
+export interface BankrollPoint {
+  date: string;
+  net: number;
+  cumulative: number;
+}
+
+export interface BankrollResponse {
+  scope: BetAnalyticsScope;
+  points: BankrollPoint[];
+  max_drawdown: number;
+  longest_losing_streak: number;
+}
+
+export interface ParsedSlipLeg {
+  player_name: string | null;
+  stat_type: string | null;
+  line_value: number | null;
+  side: string | null;
+  odds: number | null;
+}
+
+export interface ParsedSlip {
+  sportsbook: string | null;
+  bet_type: BetType | null;
+  stake: number | null;
+  potential_payout: number | null;
+  legs: ParsedSlipLeg[];
+  note: string | null;
 }
 
 // ---- Budgeting ----
@@ -316,6 +369,13 @@ export const api = {
       request<{ by_month: MonthlyNetResult[] }>(`/bets/trend?start=${start}&end=${end}`),
     analytics: (scope?: BetAnalyticsScope) =>
       request<BetAnalytics>(`/bets/analytics${scope ? `?scope=${scope}` : ''}`),
+    bankroll: (scope?: BetAnalyticsScope) =>
+      request<BankrollResponse>(`/bets/bankroll${scope ? `?scope=${scope}` : ''}`),
+    parseSlip: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return requestMultipart<ParsedSlip>('/bets/parse-slip', formData);
+    },
   },
   categories: {
     list: () => request<Category[]>('/categories'),

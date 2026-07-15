@@ -98,6 +98,10 @@ export function useBetAnalytics(scope: BetAnalyticsScope) {
   return useQuery({ queryKey: ['bets-analytics', scope], queryFn: () => api.bets.analytics(scope) });
 }
 
+export function useBankroll(scope: BetAnalyticsScope) {
+  return useQuery({ queryKey: ['bets-bankroll', scope], queryFn: () => api.bets.bankroll(scope) });
+}
+
 export function useCreateBet() {
   const queryClient = useQueryClient();
   return useMutation({

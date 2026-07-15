@@ -3,12 +3,13 @@
 import { useState } from 'react';
 
 import {
+  BankrollPoint,
   BetAnalyticsCalibrationBucket,
   BetAnalyticsGroup,
   BetAnalyticsScope,
   BetAnalyticsStatGroup,
 } from '@/lib/api';
-import { useBetAnalytics } from '@/lib/queries';
+import { useBankroll, useBetAnalytics } from '@/lib/queries';
 
 function fmtMoney(value: number): string {
   const sign = value < 0 ? '-' : '';
@@ -135,11 +136,84 @@ function CalibrationBucketRow({ bucket }: { bucket: BetAnalyticsCalibrationBucke
   );
 }
 
+function BankrollChart({ points, maxDrawdown, longestLosingStreak }: {
+  points: BankrollPoint[];
+  maxDrawdown: number;
+  longestLosingStreak: number;
+}) {
+  if (points.length === 0) {
+    return (
+      <div className="rounded-xl border border-border p-4 space-y-3">
+        <h2 className="text-base font-medium">Bankroll</h2>
+        <p className="text-sm text-muted">No settled bets yet — bankroll appears once bets settle.</p>
+      </div>
+    );
+  }
+
+  const width = 600;
+  const height = 160;
+  const padX = 8;
+  const padY = 12;
+
+  const cumulatives = points.map((p) => p.cumulative);
+  const minC = Math.min(0, ...cumulatives);
+  const maxC = Math.max(0, ...cumulatives);
+  const range = maxC - minC || 1;
+
+  const x = (i: number) => padX + (i / Math.max(1, points.length - 1)) * (width - padX * 2);
+  const y = (v: number) => padY + (1 - (v - minC) / range) * (height - padY * 2);
+  const zeroY = y(0);
+
+  const linePoints = points.map((p, i) => `${x(i)},${y(p.cumulative)}`).join(' ');
+  const areaPoints = `${x(0)},${zeroY} ${linePoints} ${x(points.length - 1)},${zeroY}`;
+
+  const final = points[points.length - 1];
+  const isPositive = final.cumulative >= 0;
+  const colorClass = isPositive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400';
+  const strokeColor = isPositive ? 'currentColor' : 'currentColor';
+
+  return (
+    <div className="rounded-xl border border-border p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-medium">Bankroll</h2>
+        <span className={`text-sm font-mono tabular-nums ${colorClass}`}>{fmtMoney(final.cumulative)}</span>
+      </div>
+      <div className={colorClass}>
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40" preserveAspectRatio="none">
+          <line
+            x1={padX}
+            y1={zeroY}
+            x2={width - padX}
+            y2={zeroY}
+            stroke="currentColor"
+            strokeOpacity={0.2}
+            strokeWidth={1}
+          />
+          <polygon points={areaPoints} fill={strokeColor} fillOpacity={0.08} stroke="none" />
+          <polyline points={linePoints} fill="none" stroke={strokeColor} strokeWidth={2} />
+          <circle cx={x(points.length - 1)} cy={y(final.cumulative)} r={3.5} fill={strokeColor} />
+        </svg>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs text-muted">Max drawdown</p>
+          <p className="text-lg font-mono tabular-nums">{fmtMoney(maxDrawdown)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted">Longest losing streak</p>
+          <p className="text-lg font-mono tabular-nums">{longestLosingStreak}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const scopes: BetAnalyticsScope[] = ['real', 'paper'];
 
 export default function AnalyticsPage() {
   const [scope, setScope] = useState<BetAnalyticsScope>('real');
   const analytics = useBetAnalytics(scope);
+  const bankroll = useBankroll(scope);
 
   const overall = analytics.data?.overall;
   const hasSettled = (overall?.settled ?? 0) > 0;
@@ -202,6 +276,14 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
+
+          {bankroll.data && (
+            <BankrollChart
+              points={bankroll.data.points}
+              maxDrawdown={bankroll.data.max_drawdown}
+              longestLosingStreak={bankroll.data.longest_losing_streak}
+            />
+          )}
 
           <GroupTable title="By sportsbook" rows={analytics.data.by_sportsbook} emptyLabel="No settled bets yet." />
           <GroupTable title="By bet type" rows={analytics.data.by_bet_type} emptyLabel="No settled bets yet." />

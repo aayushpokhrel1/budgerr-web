@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { BetLegInput } from '@/lib/api';
+import { quarterKelly } from '@/lib/kelly';
 import { PlaystatEdge, PlaystatParlayRecommendation } from '@/lib/playstat';
 import { useCreateBet } from '@/lib/queries';
 
@@ -11,13 +12,21 @@ const DEFAULT_STAKE = 10;
 export function ParlayCard({
   parlay,
   edges,
+  remainingBudget,
 }: {
   parlay: PlaystatParlayRecommendation;
   edges: PlaystatEdge[];
+  remainingBudget?: number;
 }) {
   const createBet = useCreateBet();
   const [stake, setStake] = useState(String(DEFAULT_STAKE));
   const [logged, setLogged] = useState(false);
+
+  const kelly =
+    remainingBudget !== undefined
+      ? quarterKelly(parlay.combined_odds, parlay.joint_prob, remainingBudget)
+      : null;
+  const showKelly = kelly !== null && kelly.f > 0 && (remainingBudget ?? 0) > 0;
 
   const stakeNum = parseFloat(stake);
   const stakeValid = !Number.isNaN(stakeNum) && stakeNum > 0;
@@ -80,6 +89,12 @@ export function ParlayCard({
         ))}
       </div>
 
+      {showKelly && kelly && (
+        <p className="mt-2 text-xs text-muted">
+          ¼-Kelly: ${kelly.suggested.toFixed(2)} of ${(remainingBudget ?? 0).toFixed(2)} left
+        </p>
+      )}
+
       <div className="mt-3 flex items-center gap-2">
         {logged ? (
           <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
@@ -94,6 +109,7 @@ export function ParlayCard({
               onChange={(e) => setStake(e.target.value)}
               disabled={createBet.isPending}
               aria-label="Hypothetical stake"
+              placeholder={showKelly && kelly ? kelly.suggested.toFixed(2) : undefined}
             />
             <button
               className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-surface transition-colors duration-150 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
