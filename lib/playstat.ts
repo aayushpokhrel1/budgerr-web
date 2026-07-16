@@ -1,4 +1,10 @@
-const PLAYSTAT_API_URL = process.env.NEXT_PUBLIC_PLAYSTAT_API_URL ?? 'http://localhost:8000';
+// Playstat calls are proxied through the Budgerr backend (`<backend base>/playstat/*`),
+// which forwards these sub-paths to playstat and injects the API key server-side.
+// NEXT_PUBLIC_PLAYSTAT_API_URL is an optional override for pointing straight at playstat
+// (e.g. local playstat dev); the default goes through the backend so no key is ever
+// exposed to the client.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001';
+const PLAYSTAT_API_URL = process.env.NEXT_PUBLIC_PLAYSTAT_API_URL ?? `${API_URL}/playstat`;
 
 export interface PlaystatEdge {
   player_id: number;

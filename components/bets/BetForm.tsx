@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
-import { BetLegInput, BetType } from '@/lib/api';
+import { api, ApiError, BetLegInput, BetType, ParsedSlip } from '@/lib/api';
 import { useCreateBet, usePlaystatEdges, usePlaystatSlate } from '@/lib/queries';
 import { PlaystatEdge } from '@/lib/playstat';
 
@@ -28,6 +28,11 @@ export function BetForm({ onDone }: { onDone: () => void }) {
   const [legs, setLegs] = useState<LegDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importNote, setImportNote] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const updateLeg = (index: number, field: keyof LegDraft, value: string) => {
     setLegs((prev) => prev.map((leg, i) => (i === index ? { ...leg, [field]: value } : leg)));
   };
@@ -43,6 +48,46 @@ export function BetForm({ onDone }: { onDone: () => void }) {
         odds: String(edge.odds),
       },
     ]);
+  };
+
+  const mergeParsedSlip = (parsed: ParsedSlip) => {
+    if (parsed.sportsbook) setSportsbook(parsed.sportsbook);
+    if (parsed.bet_type) setBetType(parsed.bet_type);
+    if (parsed.stake != null) setStake(String(parsed.stake));
+    if (parsed.potential_payout != null) setPotentialPayout(String(parsed.potential_payout));
+    if (parsed.legs.length > 0) {
+      setLegs((prev) => [
+        ...prev,
+        ...parsed.legs.map((leg) => ({
+          player_name: leg.player_name ?? '',
+          stat_type: leg.stat_type ?? '',
+          line_value: leg.line_value != null ? String(leg.line_value) : '',
+          side: leg.side ?? '',
+          odds: leg.odds != null ? String(leg.odds) : '',
+        })),
+      ]);
+    }
+    setImportNote(parsed.note ?? 'Imported — review the fields below before logging.');
+  };
+
+  const handleSlipFile = (file: File) => {
+    setImportError(null);
+    setImportNote(null);
+    setImporting(true);
+    api.bets
+      .parseSlip(file)
+      .then(mergeParsedSlip)
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 501) {
+          setImportError('Screenshot import needs ANTHROPIC_API_KEY set on the backend.');
+        } else {
+          setImportError('Could not import that screenshot. You can still enter the bet manually.');
+        }
+      })
+      .finally(() => {
+        setImporting(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      });
   };
 
   const submit = () => {
@@ -74,6 +119,35 @@ export function BetForm({ onDone }: { onDone: () => void }) {
   return (
     <div className="rounded-xl border border-border p-4 space-y-3">
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+      <div className="rounded-lg border border-dashed border-border p-3 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <label className="text-xs text-muted">
+            Import from screenshot
+            <span className="block text-muted/70">Upload a bet-slip screenshot to prefill this form.</span>
+          </label>
+          <button
+            type="button"
+            className="shrink-0 text-sm text-accent hover:underline disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+          >
+            {importing ? 'Importing...' : 'Choose file'}
+          </button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleSlipFile(file);
+          }}
+        />
+        {importError && <p className="text-sm text-red-600 dark:text-red-400">{importError}</p>}
+        {importNote && !importError && <p className="text-sm text-muted">{importNote}</p>}
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
