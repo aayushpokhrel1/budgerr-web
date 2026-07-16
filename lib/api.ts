@@ -1,4 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001';
+// Must match a key in the backend's BUDGERR_API_KEYS. Empty string is harmless
+// while the backend has auth disabled.
+const API_KEY = process.env.NEXT_PUBLIC_BUDGERR_API_KEY ?? '';
 
 export class ApiError extends Error {
   status: number;
@@ -10,8 +13,12 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+      'X-API-Key': API_KEY,
+    },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -27,6 +34,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 async function requestMultipart<T>(path: string, formData: FormData): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
+    headers: { 'X-API-Key': API_KEY },
     body: formData,
   });
   if (!res.ok) {

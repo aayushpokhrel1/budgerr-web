@@ -5,6 +5,10 @@
 // exposed to the client.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001';
 const PLAYSTAT_API_URL = process.env.NEXT_PUBLIC_PLAYSTAT_API_URL ?? `${API_URL}/playstat`;
+// Must match a key in the backend's BUDGERR_API_KEYS. Empty string is harmless
+// while the backend has auth disabled. These calls hit the backend's /playstat
+// proxy, so they're behind the same backend auth.
+const API_KEY = process.env.NEXT_PUBLIC_BUDGERR_API_KEY ?? '';
 
 export interface PlaystatEdge {
   player_id: number;
@@ -77,7 +81,10 @@ export interface PlaystatSlate {
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${PLAYSTAT_API_URL}${path}`, { cache: 'no-store' });
+  const res = await fetch(`${PLAYSTAT_API_URL}${path}`, {
+    cache: 'no-store',
+    headers: { 'X-API-Key': API_KEY },
+  });
   if (!res.ok) throw new Error(`Playstat API request failed: ${path} (${res.status})`);
   return res.json();
 }
