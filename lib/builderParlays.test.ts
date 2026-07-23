@@ -49,6 +49,12 @@ describe('selectLatestRun', () => {
   it('returns [] for empty input', () => {
     expect(selectLatestRun([], 4)).toEqual([]);
   });
+  it('caps the latest run at n, keeping the top-n by joint_prob', () => {
+    const cs = [0.5, 0.9, 0.7, 0.6, 0.8].map((p, i) => playerConstruction(10 + i, '2026-07-22', p));
+    const result = selectLatestRun(cs, 4);
+    expect(result.length).toBe(4);
+    expect(result.map((c) => c.joint_prob)).toEqual([0.9, 0.8, 0.7, 0.6]);
+  });
 });
 
 describe('legDisplay', () => {
@@ -57,6 +63,9 @@ describe('legDisplay', () => {
   });
   it('renders a team leg without matchup when the game is missing', () => {
     expect(legDisplay(builderTeamConstruction.legs[0], new Map())).toBe('NRFI under 0.5');
+  });
+  it('renders a player leg as "{name} {side} {stat}"', () => {
+    expect(legDisplay(playerConstruction(1, '2026-07-22', 0.8).legs[0], GAMES)).toBe("Ke'Bryan Hayes under runs");
   });
 });
 
@@ -75,6 +84,14 @@ describe('builderConstructionToBetInput', () => {
     expect(legs[0]).toEqual({ player_name: 'Yankees @ Red Sox · NRFI', stat_type: 'first_inning_runs', line_value: 0.5, side: 'under', odds: -120 });
     expect(legs[1].stat_type).toBe('f5_runs');
     expect(legs[0]).not.toHaveProperty('game_id');
+    expect(bet.placed_at).toBe('2026-07-22T12:00:00Z');
+    expect(bet.potential_payout).toBeCloseTo(14.2);
     expect(hasTeamLeg(builderTeamConstruction)).toBe(true);
+  });
+});
+
+describe('hasTeamLeg', () => {
+  it('is false for an all-player construction', () => {
+    expect(hasTeamLeg(playerConstruction(1, '2026-07-22', 0.8))).toBe(false);
   });
 });
