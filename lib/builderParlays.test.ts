@@ -71,9 +71,10 @@ describe('builderConstructionToBetInput', () => {
   it('maps team legs with market in stat_type and matchup in player_name (log-only, no game_id/market)', () => {
     const bet = builderConstructionToBetInput(builderTeamConstruction, GAMES, 10);
     expect(bet.bet_type).toBe('parlay');
-    expect(bet.legs[0]).toEqual({ player_name: 'Yankees @ Red Sox · NRFI', stat_type: 'first_inning_runs', line_value: 0.5, side: 'under', odds: -120 });
-    expect(bet.legs[1].stat_type).toBe('f5_runs');
-    expect(bet.legs[0]).not.toHaveProperty('game_id');
+    const legs = bet.legs!;
+    expect(legs[0]).toEqual({ player_name: 'Yankees @ Red Sox · NRFI', stat_type: 'first_inning_runs', line_value: 0.5, side: 'under', odds: -120 });
+    expect(legs[1].stat_type).toBe('f5_runs');
+    expect(legs[0]).not.toHaveProperty('game_id');
     expect(hasTeamLeg(builderTeamConstruction)).toBe(true);
   });
 });
