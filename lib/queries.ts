@@ -290,3 +290,10 @@ export function usePlaystatGamePredictions(date: string | undefined) {
 export function usePlaystatParlays() {
   return useQuery({ queryKey: ['playstat-parlays'], queryFn: () => playstatApi.parlays.list() });
 }
+
+export function usePlaystatBuilderParlays() {
+  return useQuery({
+    queryKey: ['playstat-builder-parlays'],
+    queryFn: () => playstatApi.parlays.listBuilder(),
+  });
+}
