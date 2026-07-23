@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   builderConstructionToBetInput,
   hasTeamLeg,
+  isRunFullyPast,
   legDisplay,
   playerNameFromLabel,
+  runDate,
   selectLatestRun,
 } from './builderParlays';
 import { builderTeamConstruction } from './__fixtures__/builderTeamConstruction';
@@ -93,5 +95,32 @@ describe('builderConstructionToBetInput', () => {
 describe('hasTeamLeg', () => {
   it('is false for an all-player construction', () => {
     expect(hasTeamLeg(playerConstruction(1, '2026-07-22', 0.8))).toBe(false);
+  });
+});
+
+describe('runDate', () => {
+  it('returns the created_at date of the first construction', () => {
+    expect(runDate([playerConstruction(1, '2026-07-22', 0.8)])).toBe('2026-07-22');
+  });
+  it('returns undefined for empty input', () => {
+    expect(runDate([])).toBeUndefined();
+  });
+});
+
+describe('isRunFullyPast', () => {
+  const gameWith = (id: number, status: string | null) => ({
+    game_id: id, sport: 'MLB', date: '2026-07-22',
+    home_team_id: 1, home_team_name: 'H', away_team_id: 2, away_team_name: 'A', status,
+  });
+  it('is true when all resolvable games are final (FT)', () => {
+    const c = playerConstruction(1, '2026-07-22', 0.8); // leg game_id 100823110
+    expect(isRunFullyPast([c], new Map([[100823110, gameWith(100823110, 'FT')]]))).toBe(true);
+  });
+  it('is false when any game is still upcoming (S)', () => {
+    const c = playerConstruction(1, '2026-07-22', 0.8);
+    expect(isRunFullyPast([c], new Map([[100823110, gameWith(100823110, 'S')]]))).toBe(false);
+  });
+  it('is false when no games resolve (cannot tell)', () => {
+    expect(isRunFullyPast([playerConstruction(1, '2026-07-22', 0.8)], new Map())).toBe(false);
   });
 });

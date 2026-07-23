@@ -150,6 +150,10 @@ export const playstatApi = {
     listForDate: async (date: string): Promise<PlaystatGamePrediction[]> =>
       fetchJson<PlaystatGamePrediction[]>(`/game-predictions?date=${date}`),
   },
+  games: {
+    listForDate: (date: string): Promise<PlaystatGame[]> =>
+      fetchJson<PlaystatGame[]>(`/games?date=${date}`),
+  },
   parlays: {
     list: async (limit = 3): Promise<PlaystatParlayRecommendation[]> =>
       fetchJson<PlaystatParlayRecommendation[]>(`/parlay-recommendations?limit=${limit}`),

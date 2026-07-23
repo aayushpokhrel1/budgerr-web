@@ -6,7 +6,7 @@ import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { GameCard } from '@/components/tonight/GameCard';
 import { BuilderParlayCard } from '@/components/tonight/BuilderParlayCard';
 import { PlaystatEdge, PlaystatGame, PlaystatGamePrediction } from '@/lib/playstat';
-import { selectLatestRun } from '@/lib/builderParlays';
+import { isRunFullyPast, runDate, selectLatestRun } from '@/lib/builderParlays';
 import { builderTeamConstruction } from '@/lib/__fixtures__/builderTeamConstruction';
 import {
   currentMonth,
@@ -15,6 +15,7 @@ import {
   usePlaystatBuilderParlays,
   usePlaystatEdges,
   usePlaystatGamePredictions,
+  usePlaystatGames,
   usePlaystatSlate,
 } from '@/lib/queries';
 
@@ -36,19 +37,6 @@ export default function TonightPage() {
   const slate = usePlaystatSlate();
   const edges = usePlaystatEdges(slate.data?.date);
   const gamePredictions = usePlaystatGamePredictions(slate.data?.date);
-  const builderParlays = usePlaystatBuilderParlays();
-
-  // Dev-only: `?demo=builder-team` injects a fixture team construction so the
-  // team branch can be driven in the browser (real saved data is player-only).
-  const [demoTeam, setDemoTeam] = useState(false);
-  useEffect(() => {
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      new URLSearchParams(window.location.search).get('demo') === 'builder-team'
-    ) {
-      setDemoTeam(true);
-    }
-  }, []);
 
   const bettingCategory = categories.data?.find((c) => c.is_betting_category);
   const bettingPeriod = bettingCategory
@@ -73,16 +61,39 @@ export default function TonightPage() {
     return map;
   }, [gamePredictions.data]);
 
-  const gamesById = useMemo(() => {
+  const builderParlays = usePlaystatBuilderParlays();
+  const latestRun = useMemo(
+    () => selectLatestRun(builderParlays.data ?? [], 4),
+    [builderParlays.data]
+  );
+  // Resolve builder-leg games from the builder RUN's own date (which can differ
+  // from the displayed slate) so matchups and settlement dates are correct.
+  const builderGames = usePlaystatGames(runDate(latestRun));
+  const builderGamesById = useMemo(() => {
     const map = new Map<number, PlaystatGame>();
-    for (const game of slate.data?.games ?? []) map.set(game.game_id, game);
+    for (const game of builderGames.data ?? []) map.set(game.game_id, game);
     return map;
-  }, [slate.data]);
+  }, [builderGames.data]);
+
+  // Dev-only: `?demo=builder-team` injects a fixture team construction so the
+  // team branch can be seen in the browser (real saved data is player-only).
+  const [demoTeam, setDemoTeam] = useState(false);
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      new URLSearchParams(window.location.search).get('demo') === 'builder-team'
+    ) {
+      setDemoTeam(true);
+    }
+  }, []);
 
   const builderConstructions = useMemo(() => {
-    const base = selectLatestRun(builderParlays.data ?? [], 4);
-    return demoTeam ? [builderTeamConstruction, ...base] : base;
-  }, [builderParlays.data, demoTeam]);
+    if (demoTeam) return [builderTeamConstruction, ...latestRun]; // dev: always show
+    if (latestRun.length === 0) return [];
+    if (!builderGames.data) return []; // wait for the run's games before deciding
+    if (isRunFullyPast(latestRun, builderGamesById)) return []; // hide a stale past run
+    return latestRun;
+  }, [latestRun, demoTeam, builderGames.data, builderGamesById]);
 
   if (categories.isLoading || budgetPeriods.isLoading || slate.isLoading) {
     return <p className="text-sm text-muted">Loading...</p>;
@@ -109,7 +120,7 @@ export default function TonightPage() {
             <BuilderParlayCard
               key={construction.parlay_id}
               construction={construction}
-              gamesById={gamesById}
+              gamesById={builderGamesById}
               remainingBudget={bettingPeriod?.remaining}
             />
           ))}

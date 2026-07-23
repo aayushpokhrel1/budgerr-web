@@ -94,3 +94,26 @@ export function builderConstructionToBetInput(
     legs,
   };
 }
+
+/** The created_at date (YYYY-MM-DD) of the run these constructions belong to,
+ *  used to fetch that run's games for matchup + settlement-date resolution. */
+export function runDate(constructions: PlaystatBuilderConstruction[]): string | undefined {
+  return constructions[0]?.created_at.slice(0, 10);
+}
+
+// Statuses meaning a game has not started yet (mirrors GameCard's "Upcoming").
+const UPCOMING_STATUSES: ReadonlySet<string | null> = new Set([null, 'NS', 'S']);
+
+/** A run is fully past when it has at least one resolvable game and none of its
+ *  resolvable games are still upcoming (all have started or finished). Used to
+ *  hide a stale builder run whose slate has already played. */
+export function isRunFullyPast(
+  constructions: PlaystatBuilderConstruction[],
+  gamesById: Map<number, PlaystatGame>
+): boolean {
+  const games = constructions
+    .flatMap((c) => c.legs.map((l) => gamesById.get(l.game_id)))
+    .filter((g): g is PlaystatGame => !!g);
+  if (games.length === 0) return false;
+  return games.every((g) => !UPCOMING_STATUSES.has(g.status));
+}

@@ -287,6 +287,14 @@ export function usePlaystatGamePredictions(date: string | undefined) {
   });
 }
 
+export function usePlaystatGames(date: string | undefined) {
+  return useQuery({
+    queryKey: ['playstat-games', date],
+    queryFn: () => playstatApi.games.listForDate(date!),
+    enabled: !!date,
+  });
+}
+
 export function usePlaystatParlays() {
   return useQuery({ queryKey: ['playstat-parlays'], queryFn: () => playstatApi.parlays.list() });
 }
