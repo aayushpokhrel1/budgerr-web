@@ -66,8 +66,8 @@ describe('legDisplay', () => {
   it('renders a team leg without matchup when the game is missing', () => {
     expect(legDisplay(builderTeamConstruction.legs[0], new Map())).toBe('NRFI under 0.5');
   });
-  it('renders a player leg as "{name} {side} {stat}"', () => {
-    expect(legDisplay(playerConstruction(1, '2026-07-22', 0.8).legs[0], GAMES)).toBe("Ke'Bryan Hayes under runs");
+  it('renders a player leg as "{name} {side} {line} {stat}"', () => {
+    expect(legDisplay(playerConstruction(1, '2026-07-22', 0.8).legs[0], GAMES)).toBe("Ke'Bryan Hayes under 0.5 runs");
   });
 });
 
