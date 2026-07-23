@@ -1,19 +1,20 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { GameCard } from '@/components/tonight/GameCard';
-import { ParlayCard } from '@/components/tonight/ParlayCard';
-import { PlaystatEdge, PlaystatGamePrediction } from '@/lib/playstat';
+import { BuilderParlayCard } from '@/components/tonight/BuilderParlayCard';
+import { PlaystatEdge, PlaystatGame, PlaystatGamePrediction } from '@/lib/playstat';
+import { selectLatestRun } from '@/lib/builderParlays';
+import { builderTeamConstruction } from '@/lib/__fixtures__/builderTeamConstruction';
 import {
   currentMonth,
   useBudgetPeriods,
   useCategories,
-  usePlaystatAllEdges,
+  usePlaystatBuilderParlays,
   usePlaystatEdges,
   usePlaystatGamePredictions,
-  usePlaystatParlays,
   usePlaystatSlate,
 } from '@/lib/queries';
 
@@ -34,11 +35,20 @@ export default function TonightPage() {
   const budgetPeriods = useBudgetPeriods(month);
   const slate = usePlaystatSlate();
   const edges = usePlaystatEdges(slate.data?.date);
-  // Parlay recommendations may target a later date than the displayed slate,
-  // so their line lookup uses the full current edge set, not the slate's date.
-  const allEdges = usePlaystatAllEdges();
   const gamePredictions = usePlaystatGamePredictions(slate.data?.date);
-  const parlays = usePlaystatParlays();
+  const builderParlays = usePlaystatBuilderParlays();
+
+  // Dev-only: `?demo=builder-team` injects a fixture team construction so the
+  // team branch can be driven in the browser (real saved data is player-only).
+  const [demoTeam, setDemoTeam] = useState(false);
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      new URLSearchParams(window.location.search).get('demo') === 'builder-team'
+    ) {
+      setDemoTeam(true);
+    }
+  }, []);
 
   const bettingCategory = categories.data?.find((c) => c.is_betting_category);
   const bettingPeriod = bettingCategory
@@ -63,6 +73,17 @@ export default function TonightPage() {
     return map;
   }, [gamePredictions.data]);
 
+  const gamesById = useMemo(() => {
+    const map = new Map<number, PlaystatGame>();
+    for (const game of slate.data?.games ?? []) map.set(game.game_id, game);
+    return map;
+  }, [slate.data]);
+
+  const builderConstructions = useMemo(() => {
+    const base = selectLatestRun(builderParlays.data ?? [], 4);
+    return demoTeam ? [builderTeamConstruction, ...base] : base;
+  }, [builderParlays.data, demoTeam]);
+
   if (categories.isLoading || budgetPeriods.isLoading || slate.isLoading) {
     return <p className="text-sm text-muted">Loading...</p>;
   }
@@ -77,19 +98,18 @@ export default function TonightPage() {
         <BudgetPeriodCard category={bettingCategory} period={bettingPeriod} />
       )}
 
-      <p className="text-sm font-medium text-muted">Recommended parlays</p>
-      {(parlays.data?.length ?? 0) === 0 ? (
+      <p className="text-sm font-medium text-muted">Low-risk builder parlays</p>
+      {builderConstructions.length === 0 ? (
         <p className="text-sm text-muted">
-          No parlay recommendations yet — the optimizer runs daily at 8:30am and needs a
-          multi-game slate with lines (same-game legs are excluded).
+          No builder parlays yet — Playstat precomputes the low-risk parlay each evening.
         </p>
       ) : (
         <div className="space-y-3">
-          {parlays.data?.map((parlay) => (
-            <ParlayCard
-              key={parlay.parlay_id}
-              parlay={parlay}
-              edges={allEdges.data ?? []}
+          {builderConstructions.map((construction) => (
+            <BuilderParlayCard
+              key={construction.parlay_id}
+              construction={construction}
+              gamesById={gamesById}
               remainingBudget={bettingPeriod?.remaining}
             />
           ))}
