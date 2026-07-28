@@ -6,8 +6,7 @@ import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { GameCard } from '@/components/tonight/GameCard';
 import { BuilderParlayCard } from '@/components/tonight/BuilderParlayCard';
 import { PlaystatEdge, PlaystatGame, PlaystatGamePrediction } from '@/lib/playstat';
-import { isRunFullyPast, runDate, selectLatestRun } from '@/lib/builderParlays';
-import { builderTeamConstruction } from '@/lib/__fixtures__/builderTeamConstruction';
+import { hasTeamLeg, isRunFullyPast, runDate, selectLatestRun } from '@/lib/builderParlays';
 import {
   currentMonth,
   useBudgetPeriods,
@@ -61,13 +60,23 @@ export default function TonightPage() {
     return map;
   }, [gamePredictions.data]);
 
-  const builderParlays = usePlaystatBuilderParlays();
-  const latestRun = useMemo(
-    () => selectLatestRun(builderParlays.data ?? [], 4),
+  const builderParlays = usePlaystatBuilderParlays(); // ?tier=all combined feed
+
+  // tier=all constructions are never mixed — partition cleanly by hasTeamLeg.
+  const playerCons = useMemo(
+    () => (builderParlays.data ?? []).filter((c) => !hasTeamLeg(c)),
     [builderParlays.data]
   );
-  // Resolve builder-leg games from the builder RUN's own date (which can differ
-  // from the displayed slate) so matchups and settlement dates are correct.
+  const teamCons = useMemo(
+    () => (builderParlays.data ?? []).filter((c) => hasTeamLeg(c)),
+    [builderParlays.data]
+  );
+
+  const latestRun = useMemo(() => selectLatestRun(playerCons, 4), [playerCons]);
+  const latestTeamRun = useMemo(() => selectLatestRun(teamCons, 4), [teamCons]);
+
+  // Each section resolves games from its OWN run's date (player run and team run
+  // are typically different days), so matchups + settlement dates are correct.
   const builderGames = usePlaystatGames(runDate(latestRun));
   const builderGamesById = useMemo(() => {
     const map = new Map<number, PlaystatGame>();
@@ -75,25 +84,38 @@ export default function TonightPage() {
     return map;
   }, [builderGames.data]);
 
-  // Dev-only: `?demo=builder-team` injects a fixture team construction so the
-  // team branch can be seen in the browser (real saved data is player-only).
-  const [demoTeam, setDemoTeam] = useState(false);
+  const teamGames = usePlaystatGames(runDate(latestTeamRun));
+  const teamGamesById = useMemo(() => {
+    const map = new Map<number, PlaystatGame>();
+    for (const game of teamGames.data ?? []) map.set(game.game_id, game);
+    return map;
+  }, [teamGames.data]);
+
+  // Dev-only: `?demo=builder-team` reveals the real latest team run even when it
+  // is fully past, so the real team card can be driven in the browser.
+  const [revealTeam, setRevealTeam] = useState(false);
   useEffect(() => {
     if (
       process.env.NODE_ENV !== 'production' &&
       new URLSearchParams(window.location.search).get('demo') === 'builder-team'
     ) {
-      setDemoTeam(true);
+      setRevealTeam(true);
     }
   }, []);
 
   const builderConstructions = useMemo(() => {
-    if (demoTeam) return [builderTeamConstruction, ...latestRun]; // dev: always show
     if (latestRun.length === 0) return [];
     if (!builderGames.data) return []; // wait for the run's games before deciding
     if (isRunFullyPast(latestRun, builderGamesById)) return []; // hide a stale past run
     return latestRun;
-  }, [latestRun, demoTeam, builderGames.data, builderGamesById]);
+  }, [latestRun, builderGames.data, builderGamesById]);
+
+  const teamConstructions = useMemo(() => {
+    if (latestTeamRun.length === 0) return [];
+    if (!teamGames.data) return [];
+    if (!revealTeam && isRunFullyPast(latestTeamRun, teamGamesById)) return [];
+    return latestTeamRun;
+  }, [latestTeamRun, teamGames.data, teamGamesById, revealTeam]);
 
   if (categories.isLoading || budgetPeriods.isLoading || slate.isLoading) {
     return <p className="text-sm text-muted">Loading...</p>;
@@ -122,6 +144,32 @@ export default function TonightPage() {
               construction={construction}
               gamesById={builderGamesById}
               remainingBudget={bettingPeriod?.remaining}
+            />
+          ))}
+        </div>
+      )}
+
+      <div>
+        <p className="text-sm font-medium text-muted">
+          Team markets (NRFI/F5) — higher variance
+        </p>
+        <p className="text-xs text-muted">
+          ~30–50% to hit · logs as paper, won&apos;t auto-settle.
+        </p>
+      </div>
+      {teamConstructions.length === 0 ? (
+        <p className="text-sm text-muted">
+          No team-market parlays in tonight&apos;s build — the team tier is often empty.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {teamConstructions.map((construction) => (
+            <BuilderParlayCard
+              key={construction.parlay_id}
+              construction={construction}
+              gamesById={teamGamesById}
+              remainingBudget={bettingPeriod?.remaining}
+              variant="variance"
             />
           ))}
         </div>
