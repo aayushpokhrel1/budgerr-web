@@ -13,10 +13,12 @@ export function BuilderParlayCard({
   construction,
   gamesById,
   remainingBudget,
+  variant = 'lowrisk',
 }: {
   construction: PlaystatBuilderConstruction;
   gamesById: Map<number, PlaystatGame>;
   remainingBudget?: number;
+  variant?: 'lowrisk' | 'variance';
 }) {
   const createBet = useCreateBet();
   const [stake, setStake] = useState(String(DEFAULT_STAKE));
@@ -40,7 +42,13 @@ export function BuilderParlayCard({
   };
 
   return (
-    <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 p-4">
+    <div
+      className={`rounded-xl border p-4 ${
+        variant === 'variance'
+          ? 'border-amber-300 dark:border-amber-900'
+          : 'border-emerald-200 dark:border-emerald-900'
+      }`}
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium font-mono tabular-nums">
           {construction.n_legs}-leg · {construction.combined_odds.toFixed(2)}x
@@ -49,7 +57,13 @@ export function BuilderParlayCard({
           <span className="text-xs font-medium px-2 py-1 rounded bg-surface text-muted whitespace-nowrap font-mono tabular-nums">
             {construction.target_payout.toFixed(1)}x
           </span>
-          <span className="text-xs font-medium px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 whitespace-nowrap font-mono tabular-nums">
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded whitespace-nowrap font-mono tabular-nums ${
+              variant === 'variance'
+                ? 'bg-surface text-muted'
+                : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
             {Math.round(construction.joint_prob * 100)}% to hit
           </span>
         </div>
