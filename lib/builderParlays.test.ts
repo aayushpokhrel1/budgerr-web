@@ -124,3 +124,41 @@ describe('isRunFullyPast', () => {
     expect(isRunFullyPast([playerConstruction(1, '2026-07-22', 0.8)], new Map())).toBe(false);
   });
 });
+
+function playerCon(id: number, date: string, jp: number): PlaystatBuilderConstruction {
+  return {
+    parlay_id: id, created_at: `${date} 09:00:00-04:00`, target_payout: 1.4,
+    joint_prob: jp, combined_odds: 1.4, n_legs: 1,
+    legs: [{ kind: 'player', game_id: 1, label: 'A runs over 0.5', side: 'over', line: 0.5,
+      odds: -120, market_prob: 0.9, model_prob: null, player_id: 7, stat_type: 'runs', market: null }],
+  };
+}
+function teamCon(id: number, date: string, jp: number): PlaystatBuilderConstruction {
+  return {
+    parlay_id: id, created_at: `${date} 09:00:00-04:00`, target_payout: 2.0,
+    joint_prob: jp, combined_odds: 2.7, n_legs: 1,
+    legs: [{ kind: 'team', game_id: 2, label: 'first_inning_runs under 0.5', side: 'under', line: 0.5,
+      odds: -150, market_prob: 0.57, model_prob: null, player_id: null, stat_type: null, market: 'first_inning_runs' }],
+  };
+}
+
+describe('tier=all client-side partition', () => {
+  const feed = [
+    playerCon(181, '2026-07-28', 0.92), playerCon(182, '2026-07-28', 0.90),
+    teamCon(166, '2026-07-26', 0.32), teamCon(161, '2026-07-26', 0.31),
+  ];
+
+  it('splits the feed into player-only and team-only partitions', () => {
+    const player = feed.filter((c) => !hasTeamLeg(c));
+    const team = feed.filter((c) => hasTeamLeg(c));
+    expect(player.map((c) => c.parlay_id)).toEqual([181, 182]);
+    expect(team.map((c) => c.parlay_id)).toEqual([166, 161]);
+  });
+
+  it('selectLatestRun on each partition picks that partition\'s own latest run', () => {
+    const player = feed.filter((c) => !hasTeamLeg(c));
+    const team = feed.filter((c) => hasTeamLeg(c));
+    expect(selectLatestRun(player, 4).map((c) => c.parlay_id)).toEqual([181, 182]);
+    expect(selectLatestRun(team, 4).map((c) => c.parlay_id)).toEqual([166, 161]);
+  });
+});
