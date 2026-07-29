@@ -2,9 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   builderConstructionToBetInput,
+  distinctPlayerLegs,
+  firstInningLegByGame,
   hasTeamLeg,
   isRunFullyPast,
   legDisplay,
+  playerLegIdentity,
+  playerLegKeys,
+  playerLegsByGame,
   playerNameFromLabel,
   runDate,
   selectLatestRun,
@@ -160,5 +165,56 @@ describe('tier=all client-side partition', () => {
     const team = feed.filter((c) => hasTeamLeg(c));
     expect(selectLatestRun(player, 4).map((c) => c.parlay_id)).toEqual([181, 182]);
     expect(selectLatestRun(team, 4).map((c) => c.parlay_id)).toEqual([166, 161]);
+  });
+});
+
+function pLeg(game_id: number, player_id: number, stat: string, side: string, line: number) {
+  return { kind: 'player' as const, game_id, player_id, stat_type: stat, market: null,
+    label: `P${player_id} ${stat} ${side} ${line}`, side, line, odds: -120,
+    market_prob: 0.9, model_prob: null };
+}
+function tLeg(game_id: number, market: 'first_inning_runs' | 'f5_runs', side: string, line: number) {
+  return { kind: 'team' as const, game_id, player_id: null, stat_type: null, market,
+    label: `${market} ${side} ${line}`, side, line, odds: -150, market_prob: 0.57, model_prob: null };
+}
+function con(id: number, date: string, jp: number, legs: any[]): PlaystatBuilderConstruction {
+  return { parlay_id: id, created_at: `${date} 09:00:00-04:00`, target_payout: 1.4,
+    joint_prob: jp, combined_odds: 1.4, n_legs: legs.length, legs };
+}
+
+describe('builder slate/quick-entry helpers', () => {
+  const players = [
+    con(1, '2026-07-28', 0.92, [pLeg(10, 100, 'runs', 'over', 0.5), pLeg(20, 200, 'hits', 'over', 0.5)]),
+    con(2, '2026-07-28', 0.90, [pLeg(10, 100, 'runs', 'over', 0.5), pLeg(30, 300, 'rbis', 'over', 0.5)]),
+    con(9, '2026-07-27', 0.99, [pLeg(40, 400, 'runs', 'over', 0.5)]), // older run, must be excluded
+  ];
+  const teams = [
+    con(50, '2026-07-26', 0.32, [tLeg(70, 'first_inning_runs', 'under', 0.5), tLeg(80, 'f5_runs', 'under', 1.5)]),
+  ];
+
+  it('playerLegIdentity is player_id|stat|side|line', () => {
+    expect(playerLegIdentity(pLeg(10, 100, 'runs', 'over', 0.5) as any)).toBe('100|runs|over|0.5');
+  });
+
+  it('playerLegKeys collects player-leg identities across constructions', () => {
+    expect(playerLegKeys([players[0]])).toEqual(new Set(['100|runs|over|0.5', '200|hits|over|0.5']));
+  });
+
+  it('distinctPlayerLegs dedupes the latest run and excludes older runs', () => {
+    const legs = distinctPlayerLegs(players);
+    expect(legs.map((l) => l.player_id)).toEqual([100, 200, 300]); // 100 deduped; 400 (older run) gone
+  });
+
+  it('playerLegsByGame groups by game_id and honors excludeKeys', () => {
+    const all = playerLegsByGame(players);
+    expect([...all.keys()].sort((a, b) => a - b)).toEqual([10, 20, 30]);
+    const excluded = playerLegsByGame(players, new Set(['100|runs|over|0.5']));
+    expect([...excluded.keys()].sort((a, b) => a - b)).toEqual([20, 30]); // game 10 suppressed
+  });
+
+  it('firstInningLegByGame keeps only first_inning_runs legs, one per game', () => {
+    const map = firstInningLegByGame(teams);
+    expect([...map.keys()]).toEqual([70]); // f5 game 80 excluded
+    expect(map.get(70)?.market).toBe('first_inning_runs');
   });
 });
