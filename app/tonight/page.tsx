@@ -5,15 +5,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { BudgetPeriodCard } from '@/components/budget/BudgetPeriodCard';
 import { GameCard } from '@/components/tonight/GameCard';
 import { BuilderParlayCard } from '@/components/tonight/BuilderParlayCard';
-import { PlaystatEdge, PlaystatGame, PlaystatGamePrediction } from '@/lib/playstat';
-import { hasTeamLeg, isRunFullyPast, runDate, selectLatestRun } from '@/lib/builderParlays';
+import { PlaystatGame } from '@/lib/playstat';
+import {
+  firstInningLegByGame,
+  hasTeamLeg,
+  isRunFullyPast,
+  playerLegKeys,
+  playerLegsByGame,
+  runDate,
+  selectLatestRun,
+} from '@/lib/builderParlays';
 import {
   currentMonth,
   useBudgetPeriods,
   useCategories,
   usePlaystatBuilderParlays,
-  usePlaystatEdges,
-  usePlaystatGamePredictions,
   usePlaystatGames,
   usePlaystatSlate,
 } from '@/lib/queries';
@@ -34,31 +40,11 @@ export default function TonightPage() {
   const categories = useCategories();
   const budgetPeriods = useBudgetPeriods(month);
   const slate = usePlaystatSlate();
-  const edges = usePlaystatEdges(slate.data?.date);
-  const gamePredictions = usePlaystatGamePredictions(slate.data?.date);
 
   const bettingCategory = categories.data?.find((c) => c.is_betting_category);
   const bettingPeriod = bettingCategory
     ? budgetPeriods.data?.find((p) => p.category_id === bettingCategory.category_id)
     : undefined;
-
-  const edgesByGame = useMemo(() => {
-    const map = new Map<number, PlaystatEdge[]>();
-    for (const edge of edges.data ?? []) {
-      const list = map.get(edge.game_id) ?? [];
-      list.push(edge);
-      map.set(edge.game_id, list);
-    }
-    return map;
-  }, [edges.data]);
-
-  const firstInningByGame = useMemo(() => {
-    const map = new Map<number, PlaystatGamePrediction>();
-    for (const pred of gamePredictions.data ?? []) {
-      if (pred.market === 'first_inning_runs') map.set(pred.game_id, pred);
-    }
-    return map;
-  }, [gamePredictions.data]);
 
   const builderParlays = usePlaystatBuilderParlays(); // ?tier=all combined feed
 
@@ -109,6 +95,18 @@ export default function TonightPage() {
     if (isRunFullyPast(latestRun, builderGamesById)) return []; // hide a stale past run
     return latestRun;
   }, [latestRun, builderGames.data, builderGamesById]);
+
+  // Slate cards are fed by the builder feed (frozen /edges + /game-predictions retired).
+  // Suppress player legs already shown in the rendered low-risk section.
+  const shownKeys = useMemo(() => playerLegKeys(builderConstructions), [builderConstructions]);
+  const slatePlayerLegsByGame = useMemo(
+    () => playerLegsByGame(playerCons, shownKeys),
+    [playerCons, shownKeys]
+  );
+  const slateFirstInningByGame = useMemo(
+    () => firstInningLegByGame(teamCons),
+    [teamCons]
+  );
 
   const teamConstructions = useMemo(() => {
     if (latestTeamRun.length === 0) return [];
@@ -186,8 +184,8 @@ export default function TonightPage() {
           <GameCard
             key={game.game_id}
             game={game}
-            edges={edgesByGame.get(game.game_id) ?? []}
-            firstInning={firstInningByGame.get(game.game_id)}
+            playerLegs={slatePlayerLegsByGame.get(game.game_id) ?? []}
+            firstInningLeg={slateFirstInningByGame.get(game.game_id)}
           />
         ))}
       </div>
