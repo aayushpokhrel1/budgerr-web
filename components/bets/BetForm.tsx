@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { api, ApiError, BetLegInput, BetType, ParsedSlip } from '@/lib/api';
-import { useCreateBet, usePlaystatEdges, usePlaystatSlate } from '@/lib/queries';
-import { PlaystatEdge } from '@/lib/playstat';
+import { useCreateBet, usePlaystatBuilderParlays } from '@/lib/queries';
+import { PlaystatBuilderPlayerLeg } from '@/lib/playstat';
+import { distinctPlayerLegs, hasTeamLeg, playerNameFromLabel } from '@/lib/builderParlays';
 
 interface LegDraft {
   player_name: string;
@@ -18,8 +19,11 @@ const emptyLeg: LegDraft = { player_name: '', stat_type: '', line_value: '', sid
 
 export function BetForm({ onDone }: { onDone: () => void }) {
   const createBet = useCreateBet();
-  const slate = usePlaystatSlate();
-  const tonightsEdges = usePlaystatEdges(slate.data?.date);
+  const builderParlays = usePlaystatBuilderParlays();
+  const builderPicks = useMemo(() => {
+    const playerCons = (builderParlays.data ?? []).filter((c) => !hasTeamLeg(c));
+    return distinctPlayerLegs(playerCons);
+  }, [builderParlays.data]);
 
   const [sportsbook, setSportsbook] = useState('');
   const [betType, setBetType] = useState<BetType>('single');
@@ -37,15 +41,15 @@ export function BetForm({ onDone }: { onDone: () => void }) {
     setLegs((prev) => prev.map((leg, i) => (i === index ? { ...leg, [field]: value } : leg)));
   };
 
-  const addLegFromEdge = (edge: PlaystatEdge) => {
+  const addLegFromBuilderLeg = (leg: PlaystatBuilderPlayerLeg) => {
     setLegs((prev) => [
       ...prev,
       {
-        player_name: edge.player_name,
-        stat_type: edge.stat_type,
-        line_value: String(edge.line_value),
-        side: edge.side,
-        odds: String(edge.odds),
+        player_name: playerNameFromLabel(leg),
+        stat_type: leg.stat_type,
+        line_value: String(leg.line),
+        side: leg.side,
+        odds: String(leg.odds),
       },
     ]);
   };
@@ -190,25 +194,25 @@ export function BetForm({ onDone }: { onDone: () => void }) {
         </div>
       </div>
 
-      {tonightsEdges.data && tonightsEdges.data.length > 0 && (
+      {builderPicks.length > 0 && (
         <div className="rounded-lg bg-surface p-3">
-          <p className="text-xs text-muted mb-2">Tonight&apos;s edges (from playstat)</p>
+          <p className="text-xs text-muted mb-2">Tonight&apos;s builder picks</p>
           <div className="space-y-1">
-            {tonightsEdges.data.map((edge) => (
+            {builderPicks.map((leg) => (
               <div
-                key={`${edge.player_id}-${edge.game_id}-${edge.stat_type}`}
+                key={`${leg.player_id}-${leg.game_id}-${leg.stat_type}-${leg.side}-${leg.line}`}
                 className="flex items-center justify-between text-sm"
               >
                 <span>
-                  {edge.player_name} {edge.side} {edge.line_value} {edge.stat_type}{' '}
+                  {playerNameFromLabel(leg)} {leg.side} {leg.line} {leg.stat_type}{' '}
                   <span className="text-muted font-mono tabular-nums">
-                    ({edge.odds > 0 ? '+' : ''}
-                    {edge.odds})
+                    ({leg.odds > 0 ? '+' : ''}
+                    {leg.odds})
                   </span>
                 </span>
                 <button
                   className="text-xs text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent rounded"
-                  onClick={() => addLegFromEdge(edge)}
+                  onClick={() => addLegFromBuilderLeg(leg)}
                 >
                   + Add to bet
                 </button>
