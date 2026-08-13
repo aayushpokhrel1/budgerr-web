@@ -1,11 +1,12 @@
 import Link from 'next/link';
 
 import { Bet } from '@/lib/api';
+import { betLegMarketLabel } from '@/lib/builderParlays';
 
 function legsSummary(bet: Bet): string | null {
   if (bet.legs.length === 0) return null;
   return bet.legs
-    .map((leg) => [leg.player_name, leg.side, leg.line_value, leg.stat_type].filter(Boolean).join(' '))
+    .map((leg) => [leg.player_name, leg.side, leg.line_value, betLegMarketLabel(leg.market) ?? leg.stat_type].filter(Boolean).join(' '))
     .join(', ');
 }
 

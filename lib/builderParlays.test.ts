@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  betLegMarketLabel,
   builderConstructionToBetInput,
   distinctPlayerLegs,
   firstInningLegByGame,
@@ -77,23 +78,56 @@ describe('legDisplay', () => {
 });
 
 describe('builderConstructionToBetInput', () => {
-  it('maps a player leg to a settleable BetLegInput and sets placed_at from the game date', () => {
+  it('maps a player leg to a settleable BetLegInput with game_id/player_id and sets placed_at from the game date', () => {
     const bet = builderConstructionToBetInput(playerConstruction(1, '2026-07-22', 0.8), GAMES, 10);
-    expect(bet.legs).toEqual([{ player_name: "Ke'Bryan Hayes", stat_type: 'runs', line_value: 0.5, side: 'under', odds: -147 }]);
+    expect(bet.legs).toEqual([{
+      player_name: "Ke'Bryan Hayes",
+      stat_type: 'runs',
+      game_id: 100823110,
+      player_id: 100663647,
+      line_value: 0.5,
+      side: 'under',
+      odds: -147,
+    }]);
+    expect(bet.legs[0].market).toBeUndefined();
     expect(bet.placed_at).toBe('2026-07-22T12:00:00Z');
     expect(bet.potential_payout).toBeCloseTo(20.1);
     expect(bet.is_paper).toBe(true);
   });
-  it('maps team legs with market in stat_type and matchup in player_name (log-only, no game_id/market)', () => {
+  it('maps team legs with structured market/game_id in player_name and no "·" (log-only, no auto-settle wired)', () => {
     const bet = builderConstructionToBetInput(builderTeamConstruction, GAMES, 10);
     expect(bet.bet_type).toBe('parlay');
     const legs = bet.legs!;
-    expect(legs[0]).toEqual({ player_name: 'Yankees @ Red Sox · NRFI', stat_type: 'first_inning_runs', line_value: 0.5, side: 'under', odds: -120 });
-    expect(legs[1].stat_type).toBe('f5_runs');
-    expect(legs[0]).not.toHaveProperty('game_id');
+    expect(legs[0]).toEqual({
+      player_name: 'Yankees @ Red Sox',
+      market: 'first_inning_runs',
+      game_id: 100823110,
+      line_value: 0.5,
+      side: 'under',
+      odds: -120,
+    });
+    expect(legs[0].stat_type).toBeUndefined();
+    expect(legs[0].player_name).not.toContain('·');
+    expect(legs[1].market).toBe('f5_runs');
     expect(bet.placed_at).toBe('2026-07-22T12:00:00Z');
     expect(bet.potential_payout).toBeCloseTo(14.2);
     expect(hasTeamLeg(builderTeamConstruction)).toBe(true);
+  });
+});
+
+describe('betLegMarketLabel', () => {
+  it('maps first_inning_runs to NRFI', () => {
+    expect(betLegMarketLabel('first_inning_runs')).toBe('NRFI');
+  });
+  it('maps f5_runs to F5', () => {
+    expect(betLegMarketLabel('f5_runs')).toBe('F5');
+  });
+  it('returns null for an unknown market', () => {
+    expect(betLegMarketLabel('home_runs')).toBeNull();
+  });
+  it('returns null for null/undefined', () => {
+    expect(betLegMarketLabel(null)).toBeNull();
+    expect(betLegMarketLabel(undefined)).toBeNull();
   });
 });
 
