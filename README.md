@@ -6,7 +6,7 @@ The web client for [Budgerr](https://github.com/aayushpokhrel1/Budgerr) — a pe
 
 Same as the rest of the project: pure frontend, all logic lives in the [Budgerr backend](https://github.com/aayushpokhrel1/Budgerr) (FastAPI + Postgres). This repo just renders it.
 
-Scope for now: **you, personally**. No auth yet — matches the backend, which doesn't have any either. Both will need it before any of this is exposed beyond your own machine (see backend README Section 10/13).
+Scope for now: **you, personally**. The backend **is** auth-gated now (a per-consumer `X-API-Key`, sent from `NEXT_PUBLIC_BUDGERR_API_KEY` on every backend and `/playstat/*` call), so this client will not talk to it without a key. What stays single-user is everything above that: one hardcoded account, no login screen, no per-user isolation. See the backend repo's `docs/ARCHITECT.md` section 9 for the auth model and `PRODUCT.md` section 7 for what multi-user would take.
 
 ---
 
@@ -32,7 +32,7 @@ Budgerr Web (this repo)
 - **Next.js** (App Router, TypeScript) — the standard choice for a from-scratch React web app; App Router over Pages Router since it's the current default
 - **Tailwind CSS** — utility classes directly in components, no separate stylesheet per component
 - **React Query** (`@tanstack/react-query`) — server state, identical usage pattern to the mobile app's `lib/queries.ts`
-- **react-plaid-link** — the official React wrapper around Plaid Link's web SDK, used on `/link-bank` instead of the standalone HTML page the backend also hosts (see backend README Section 9)
+- **react-plaid-link** — the official React wrapper around Plaid Link's web SDK, used on `/link-bank` instead of the standalone HTML page the backend also hosts (see the backend repo's `docs/ARCHITECT.md` section 2.1; bank linking is web-only by design)
 
 ---
 
