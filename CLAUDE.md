@@ -21,33 +21,58 @@ so say which repo a decision belongs to before writing it down.
 | `README.md` | What the web app is, the stack, how to run it |
 | `PRODUCT.md` | Product truth: who it is for, decisions, roadmap, what is deferred and why |
 | `DESIGN.md` | The visual system: tokens, type, colour, component patterns |
+| `docs/OPERATIONS.md` | Run, verify, environment, deploy, and the traps with teeth |
+| `docs/superpowers/specs/` | The design of one feature, written before building it. `YYYY-MM-DD-<feature>.md` |
+| `docs/superpowers/plans/` | The task breakdown for one feature. Same naming |
 | `AGENTS.md` | Agent instructions; keep it and CLAUDE.md consistent |
 | `CLAUDE.md` | This file |
+
+**Verify with `npm run lint && npm test && npm run build`.** CI runs all three in that order
+(lint and test first, since the build is much slower). `docs/OPERATIONS.md` has the traps
+that remain, including the one that matters most here: vitest only collects
+`lib/**/*.test.ts`, so a test file placed anywhere else is silently never run.
 
 There is no `HANDOVER.md` here. If one is ever added it holds **current state only**: where
 things stand, what is half-done, what is next. Before adding a line to any such file, ask: will
 this still be true in a month? If yes it belongs in one of the docs above, or in the vault.
+`lib/handover.budget.test.ts` is a tripwire that holds that rule the moment the file appears:
+it fails over 200 lines or on a dated heading, and the answer when it goes red is to move
+content to its home, never to raise the limit.
 
 ## When Aayush says "update"
 
 "Update the docs", "update everything", or just "update" means **all of it, in this turn**:
 
 1. **The knowledge vault** - `C:\Users\aayus\Documents\Knowledge-Vault\Projects\Budgerr\`
-   (the path is per-machine). **No `Budgerr/` folder exists yet**, so create
-   `Projects/Budgerr/index.md` and link it from the vault's `Projects/index.md`. Use ONE folder
-   for all three repos, and name the repo in each note. Add what this session learned that is
-   worth keeping: a decision and its WHY, a non-obvious gotcha or fix, a cross-project learning.
-   This is the part that gets forgotten, and it is the part that compounds.
+   (the path is per-machine). `Projects/Budgerr/index.md` exists and is linked from the vault's
+   `Projects/index.md`, so append to it. Use ONE folder for all three repos, and name the repo
+   in each note. Add what this session learned that is worth keeping: a decision and its WHY, a
+   non-obvious gotcha or fix, a cross-project learning. This is the part that gets forgotten,
+   and it is the part that compounds.
 2. **Every doc in this repo**, not only the one already open, and the sibling repos if the change
    reached them.
 
 **Vault writes go through WSL, and note content must never appear on the command line.** The Bash
 tool re-quotes the wrapper, so backticks and apostrophes inside a note get executed or break the
-command. Write the note to a file first, then pass only literal paths:
+command. Write the note to a file first, then pass only literal paths.
+
+**Write a script FILE and run that; a `bash -lc '...'` one-liner breaks two ways**, both
+confirmed on 2026-10-21:
+
+- `$VAR` and backslash-escapes inside the single quotes are mangled by the re-quoting. A
+  `V=/mnt/c/...` assignment followed by `"$V/index.md"` arrived as the literal `/index.md` and
+  every write failed to open its file.
+- Git Bash rewrites `/mnt/...` arguments into Windows paths, producing
+  `bash: C:/Program Files/Git/mnt/c/...: No such file or directory`.
 
 ```
-wsl -d Ubuntu -- bash -lc 'cat /mnt/c/<tmp>/note.md >> /mnt/c/Users/aayus/Documents/Knowledge-Vault/Projects/Budgerr/index.md'
+MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' wsl -d Ubuntu -- bash /mnt/c/<tmp>/vault-write.sh
 ```
+
+Inside that script, edit an existing note with `python3` and a heredoc rather than `sed`: a
+wikilink is full of `[`, `|` and `\` that sed treats as syntax, and python lets you assert you
+matched exactly one line before rewriting, so a missed match fails instead of silently doing
+nothing.
 
 **Updating docs means making them TRUE, not just appending what shipped.** Correct or strike a
 stale claim where it sits rather than adding a newer entry underneath it, because the next reader
