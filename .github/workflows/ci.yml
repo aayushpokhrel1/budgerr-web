@@ -16,5 +16,12 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+      # Lint and test run BEFORE the build: each takes about a second, the build takes ~17s,
+      # so the cheap checks fail first. Keep all three here. A green check on this repo has
+      # to mean more than "it compiles", which is all the build alone proves.
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
       - name: Build
         run: npm run build

@@ -79,12 +79,20 @@ export default function TonightPage() {
 
   // Dev-only: `?demo=builder-team` reveals the real latest team run even when it
   // is fully past, so the real team card can be driven in the browser.
+  // The setState-in-effect here is deliberate and the lint rule is a false positive for it.
+  // This page is prerendered on the server, where `window` does not exist, so the flag MUST
+  // start false and flip after mount: reading the URL in a lazy useState initializer instead
+  // would return false on the server and true on the client, which is a hydration mismatch.
+  // `useSearchParams()` would be the other fix, but it forces a Suspense boundary this page
+  // does not have. One mount-time flip of a dev-only flag cannot cascade, which is the only
+  // thing the rule is protecting against.
   const [revealTeam, setRevealTeam] = useState(false);
   useEffect(() => {
     if (
       process.env.NODE_ENV !== 'production' &&
       new URLSearchParams(window.location.search).get('demo') === 'builder-team'
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- see above: SSR-safe on purpose
       setRevealTeam(true);
     }
   }, []);

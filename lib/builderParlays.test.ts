@@ -211,7 +211,9 @@ function tLeg(game_id: number, market: 'first_inning_runs' | 'f5_runs', side: st
   return { kind: 'team' as const, game_id, player_id: null, stat_type: null, market,
     label: `${market} ${side} ${line}`, side, line, odds: -150, market_prob: 0.57, model_prob: null };
 }
-function con(id: number, date: string, jp: number, legs: any[]): PlaystatBuilderConstruction {
+type BuilderLeg = PlaystatBuilderConstruction['legs'][number];
+
+function con(id: number, date: string, jp: number, legs: BuilderLeg[]): PlaystatBuilderConstruction {
   return { parlay_id: id, created_at: `${date} 09:00:00-04:00`, target_payout: 1.4,
     joint_prob: jp, combined_odds: 1.4, n_legs: legs.length, legs };
 }
@@ -227,7 +229,7 @@ describe('builder slate/quick-entry helpers', () => {
   ];
 
   it('playerLegIdentity is player_id|stat|side|line', () => {
-    expect(playerLegIdentity(pLeg(10, 100, 'runs', 'over', 0.5) as any)).toBe('100|runs|over|0.5');
+    expect(playerLegIdentity(pLeg(10, 100, 'runs', 'over', 0.5) as BuilderLeg)).toBe('100|runs|over|0.5');
   });
 
   it('playerLegKeys collects player-leg identities across constructions', () => {
